@@ -1,0 +1,265 @@
+/* dnf-main.c
+ *
+ * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
+ * Copyright © 2016 Colin Walters <walters@verbum.org>
+ * Copyright © 2016 Igor Gnatenko <ignatenko@redhat.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <stdlib.h>
+#include <glib.h>
+#include <libpeas/peas.h>
+#include <libdnf/libdnf.h>
+#include "dnf-command.h"
+
+static gboolean opt_yes = TRUE;
+static gboolean opt_nodocs = FALSE;
+
+static gboolean
+process_global_option (const gchar  *option_name,
+                       const gchar  *value,
+                       gpointer      data,
+                       GError      **error)
+{
+  g_autoptr(GError) local_error = NULL;
+  DnfContext *ctx = DNF_CONTEXT (data);
+
+  gboolean ret;
+  if (g_strcmp0 (option_name, "--disablerepo") == 0)
+    {
+      ret = dnf_context_repo_disable (ctx, value, &local_error);
+    }
+  else if (g_strcmp0 (option_name, "--enablerepo") == 0)
+    {
+      ret = dnf_context_repo_enable (ctx, value, &local_error);
+    }
+  else if (g_strcmp0 (option_name, "--setopt") == 0)
+    {
+      if (g_strcmp0 (value, "tsflags=nodocs") == 0)
+        {
+          opt_nodocs = TRUE;
+          ret = TRUE;
+        }
+      else
+        {
+          local_error = g_error_new (G_OPTION_ERROR,
+                                     G_OPTION_ERROR_BAD_VALUE,
+                                     "Unable to handle: %s", value);
+          ret = FALSE;
+        }
+    }
+  else
+    g_assert_not_reached ();
+
+  if (local_error != NULL)
+    g_set_error (error,
+                 G_OPTION_ERROR,
+                 G_OPTION_ERROR_BAD_VALUE,
+                 "(%s) %s", option_name, local_error->message);
+
+  return ret;
+}
+
+static const GOptionEntry global_opts[] = {
+  { "assumeyes", 'y', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &opt_yes, "Does nothing, we always assume yes", NULL },
+  { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
+  { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
+  { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
+  { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set transaction flag, like tsflags=nodocs", "FLAG" },
+  { NULL }
+};
+
+static DnfContext *
+context_new (void)
+{
+  DnfContext *ctx = dnf_context_new ();
+
+  dnf_context_set_repo_dir (ctx, "/etc/yum.repos.d/");
+#define CACHEDIR "/var/cache/yum"
+  dnf_context_set_cache_dir (ctx, CACHEDIR"/metadata");
+  dnf_context_set_solv_dir (ctx, CACHEDIR"/solv");
+  dnf_context_set_lock_dir (ctx, CACHEDIR"/lock");
+#undef CACHEDIR
+  dnf_context_set_check_disk_space (ctx, FALSE);
+  dnf_context_set_check_transaction (ctx, TRUE);
+  dnf_context_set_keep_cache (ctx, FALSE);
+  dnf_context_set_cache_age (ctx, 0);
+  dnf_context_set_yumdb_enabled (ctx, FALSE);
+
+  return ctx;
+}
+
+int
+main (int   argc,
+      char *argv[])
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(DnfContext) ctx = context_new ();
+  g_autoptr(PeasEngine) engine = peas_engine_get_default ();
+  g_autoptr(PeasExtensionSet) cmd_exts = NULL;
+  g_autoptr(GOptionContext) opt_ctx = g_option_context_new ("COMMAND");
+  g_autoptr(GOptionContext) subcmd_opt_ctx = NULL;
+  g_autofree gchar *subcmd_opt_param = NULL;
+
+  if (g_getenv ("DNF_IN_TREE_PLUGINS") != NULL)
+    peas_engine_prepend_search_path (engine,
+                                    BUILDDIR"/plugins",
+                                    SRCDIR"/plugins");
+  else
+    peas_engine_prepend_search_path (engine,
+                                     PACKAGE_LIBDIR"/plugins",
+                                     PACKAGE_DATADIR"/plugins");
+
+  peas_engine_prepend_search_path (engine,
+                                   "resource:///org/fedoraproject/dnf/plugins",
+                                   NULL);
+
+  g_autofree gchar *path = g_build_filename (g_get_user_data_dir (),
+                                             "dnf",
+                                             "plugins",
+                                             NULL);
+  peas_engine_prepend_search_path (engine,
+                                   path,
+                                   NULL);
+
+  cmd_exts = peas_extension_set_new (engine,
+                                     DNF_TYPE_COMMAND,
+                                     NULL);
+
+  GString *cmd_summary = g_string_new ("Commands:");
+  for (const GList *plugin = peas_engine_get_plugin_list (engine);
+       plugin != NULL;
+       plugin = plugin->next)
+    {
+      PeasPluginInfo *info = plugin->data;
+      if (!peas_engine_load_plugin (engine, info))
+        continue;
+      if (peas_engine_provides_extension (engine, info, DNF_TYPE_COMMAND))
+        g_string_append_printf (cmd_summary, "\n  %s - %s", peas_plugin_info_get_name (info), peas_plugin_info_get_description (info));
+    }
+  g_option_context_set_summary (opt_ctx, cmd_summary->str);
+  g_string_free (cmd_summary, TRUE);
+  g_option_context_set_ignore_unknown_options (opt_ctx, TRUE);
+  g_option_context_set_help_enabled (opt_ctx, FALSE);
+  GOptionGroup *opt_global_grp = g_option_group_new ("global",
+                                                     "Global Options:",
+                                                     "Show global help options",
+                                                     ctx,
+                                                     NULL);
+  g_option_group_add_entries (opt_global_grp, global_opts);
+  g_option_context_set_main_group (opt_ctx, opt_global_grp);
+
+  /*
+   * Parse the global options. We rearrange the options as
+   * necessary, in order to pass relevant options through
+   * to the commands, but also have them take effect globally.
+   */
+  const gchar *cmd_name = NULL;
+  gboolean show_help = FALSE;
+  gint in, out;
+  for (in = 1, out = 1; in < argc; in++, out++)
+    {
+      /* The non-option is the command, take it out of the arguments */
+      if (argv[in][0] != '-')
+        {
+          if (cmd_name == NULL)
+            {
+              cmd_name = argv[in];
+              out--;
+              continue;
+            }
+        }
+      else
+        {
+          if (g_strcmp0 (argv[in], "--") == 0)
+            break;
+          if (cmd_name == NULL &&
+              (g_strcmp0 (argv[in], "-h") == 0 ||
+               g_strcmp0 (argv[in], "--help") == 0))
+            show_help = TRUE;
+        }
+      argv[out] = argv[in];
+    }
+  argc = out;
+
+  if (show_help)
+    {
+      g_set_prgname (argv[0]);
+      g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
+      g_print ("%s", help);
+      goto out;
+    }
+
+  if (!dnf_context_setup (ctx, NULL, &error))
+    goto out;
+  if (opt_nodocs)
+    {
+      DnfTransaction *txn = dnf_context_get_transaction (ctx);
+      dnf_transaction_set_flags (txn,
+                                 dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_NODOCS);
+    }
+
+  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
+    goto out;
+
+  PeasPluginInfo *plug = NULL;
+  PeasExtension *exten = NULL;
+  if (cmd_name != NULL)
+    {
+      g_autofree gchar *mod_name = g_strdup_printf ("command_%s", cmd_name);
+      plug = peas_engine_get_plugin_info (engine, mod_name);
+      if (plug != NULL)
+        exten = peas_extension_set_get_extension (cmd_exts, plug);
+    }
+  if (exten == NULL)
+    {
+      if (cmd_name == NULL)
+        error = g_error_new_literal (G_IO_ERROR,
+                                     G_IO_ERROR_FAILED,
+                                     "No command specified");
+      else
+        error = g_error_new (G_IO_ERROR,
+                             G_IO_ERROR_FAILED,
+                             "Unknown command: '%s'", cmd_name);
+
+      g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
+      g_printerr ("This is microdnf, which implements subset of `dnf'.\n"
+                  "%s", help);
+      goto out;
+    }
+
+  subcmd_opt_param = g_strdup_printf ("%s - %s",
+    peas_plugin_info_get_external_data (plug, "Command-Syntax"),
+    peas_plugin_info_get_description (plug));
+  subcmd_opt_ctx = g_option_context_new (subcmd_opt_param);
+  g_option_context_add_group (subcmd_opt_ctx, opt_global_grp);
+  if (!dnf_command_run (DNF_COMMAND (exten), argc, argv, subcmd_opt_ctx, ctx, &error))
+    goto out;
+
+out:
+  if (error != NULL)
+    {
+      const gchar *prefix = "";
+      const gchar *suffix = "";
+      if (isatty (1))
+        {
+          prefix = "\x1b[31m\x1b[1m"; /* red, bold */
+          suffix = "\x1b[22m\x1b[0m"; /* bold off, color reset */
+        }
+      g_printerr ("%serror: %s%s\n", prefix, suffix, error->message);
+      return EXIT_FAILURE;
+    }
+  return EXIT_SUCCESS;
+}

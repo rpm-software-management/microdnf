@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_install
+Embedded = dnf_command_install_register_types
+Name = install
+Description = Install packages
+Authors = Richard Hughes <richard@hughsie.com>, Colin Walters <walters@verbum.org>, Igor Gnatenko <ignatenko@redhat.com>
+License = GPL-3.0+
+Copyright = Copyright © 2010-2016 Richard Hughes, Colin Walters, Igor Gnatenko
+X-Command-Syntax = install PKG [PKG...]
