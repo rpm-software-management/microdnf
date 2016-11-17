@@ -3,9 +3,14 @@ project (microdnf C)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+include (CheckCCompilerFlag)
 include (GNUInstallDirs)
 include (GResource)
 
+check_c_compiler_flag ("--std=gnu11" SUPPORT_GNU11_STD)
+if (NOT SUPPORT_GNU11_STD)
+  message (FATAL_ERROR "Support for --std=gnu11 is mandatory")
+endif ()
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu11")
 
 find_package (PkgConfig REQUIRED)
