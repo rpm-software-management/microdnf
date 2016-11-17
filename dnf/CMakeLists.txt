@@ -15,5 +15,8 @@ target_link_libraries (microdnf
 target_compile_definitions (microdnf
                             PRIVATE -DBUILDDIR="${CMAKE_CURRENT_BINARY_DIR}"
                             PRIVATE -DSRCDIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_subdirectory (plugins)
+
 install (TARGETS microdnf
          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
