@@ -5,8 +5,15 @@ glib_compile_resources (DNF_COMMAND_INSTALL plugins/install/dnf-command-install.
                         INTERNAL)
 list (APPEND DNF_COMMAND_INSTALL "plugins/install/dnf-command-install.c")
 
+glib_compile_resources (DNF_COMMAND_UPDATE plugins/update/dnf-command-update.gresource.xml
+                        C_PREFIX dnf_command_update
+                        INTERNAL)
+list (APPEND DNF_COMMAND_UPDATE "plugins/update/dnf-command-update.c")
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
-add_executable (microdnf dnf-main.c ${DNF_SRCS} ${DNF_COMMAND_INSTALL})
+add_executable (microdnf dnf-main.c ${DNF_SRCS}
+                ${DNF_COMMAND_INSTALL}
+                ${DNF_COMMAND_UPDATE})
 target_link_libraries (microdnf
                        ${GLIB_LIBRARIES}
                        ${GOBJECT_LIBRARIES}
