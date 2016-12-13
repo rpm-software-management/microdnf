@@ -28,6 +28,7 @@ dnf_utils_print_transaction (DnfContext *ctx)
                                                      DNF_PACKAGE_INFO_REINSTALL,
                                                      DNF_PACKAGE_INFO_DOWNGRADE,
                                                      DNF_PACKAGE_INFO_UPDATE,
+                                                     DNF_PACKAGE_INFO_REMOVE,
                                                      -1);
   g_print ("Transaction: ");
   if (pkgs->len == 0)
