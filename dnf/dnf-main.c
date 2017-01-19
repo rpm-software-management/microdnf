@@ -202,6 +202,9 @@ main (int   argc,
       goto out;
     }
 
+  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
+    goto out;
+
   if (!dnf_context_setup (ctx, NULL, &error))
     goto out;
   if (opt_nodocs)
@@ -210,9 +213,6 @@ main (int   argc,
       dnf_transaction_set_flags (txn,
                                  dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_NODOCS);
     }
-
-  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
-    goto out;
 
   PeasPluginInfo *plug = NULL;
   PeasExtension *exten = NULL;
