@@ -16,7 +16,7 @@ set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu11")
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (GLIB REQUIRED glib-2.0>=2.44.0)
 pkg_check_modules (GOBJECT REQUIRED gobject-2.0>=2.44.0)
-pkg_check_modules (PEAS REQUIRED libpeas-1.0>=1.15.0)
+pkg_check_modules (PEAS REQUIRED libpeas-1.0>=1.20.0)
 pkg_check_modules (LIBDNF REQUIRED libdnf>=0.7.0)
 
 set (PKG_LIBDIR ${CMAKE_INSTALL_FULL_LIBDIR}/dnf)
