@@ -15,11 +15,18 @@ glib_compile_resources (DNF_COMMAND_UPDATE plugins/update/dnf-command-update.gre
                         INTERNAL)
 list (APPEND DNF_COMMAND_UPDATE "plugins/update/dnf-command-update.c")
 
+glib_compile_resources (DNF_COMMAND_CLEAN plugins/clean/dnf-command-clean.gresource.xml
+                        C_PREFIX dnf_command_clean
+                        INTERNAL)
+list (APPEND DNF_COMMAND_CLEAN "plugins/clean/dnf-command-clean.c")
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 add_executable (microdnf dnf-main.c ${DNF_SRCS}
                 ${DNF_COMMAND_INSTALL}
                 ${DNF_COMMAND_REMOVE}
-                ${DNF_COMMAND_UPDATE})
+                ${DNF_COMMAND_UPDATE}
+                ${DNF_COMMAND_CLEAN})
+
 target_link_libraries (microdnf
                        ${GLIB_LIBRARIES}
                        ${GOBJECT_LIBRARIES}

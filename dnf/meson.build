@@ -29,6 +29,15 @@ microdnf_srcs = [
     source_dir : 'plugins/update',
   ),
   'plugins/update/dnf-command-update.c',
+
+  # clean
+  gnome.compile_resources(
+    'dnf-clean',
+    'plugins/clean/dnf-command-clean.gresource.xml',
+    c_name : 'dnf_command_clean',
+    source_dir : 'plugins/clean',
+  ),
+  'plugins/clean/dnf-command-clean.c',
 ]
 
 executable(
