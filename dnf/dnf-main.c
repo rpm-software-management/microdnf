@@ -169,7 +169,9 @@ main (int   argc,
       if (g_strcmp0 (argv[in], "--") == 0)
         break;
       if (g_strcmp0 (argv[in], "-h") == 0 ||
-          g_strcmp0 (argv[in], "--help") == 0)
+          g_strcmp0 (argv[in], "--help") == 0 ||
+          g_strcmp0 (argv[in], "--help-all") == 0 ||
+          g_strcmp0 (argv[in], "--help-global") == 0)
         {
           show_help = TRUE;
           break;
@@ -208,6 +210,8 @@ main (int   argc,
     }
   if (cmd_name != NULL) --argc;
 
+  g_option_context_set_help_enabled (opt_ctx, TRUE);
+  
   if (cmd_name == NULL && show_help)
     {
       g_set_prgname (argv[0]);
