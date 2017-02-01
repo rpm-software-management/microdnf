@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <locale.h>
 #include <stdlib.h>
 #include <glib.h>
 #include <libpeas/peas.h>
@@ -114,6 +115,8 @@ main (int   argc,
   g_autoptr(GOptionContext) opt_ctx = g_option_context_new ("COMMAND");
   g_autoptr(GOptionContext) subcmd_opt_ctx = NULL;
   g_autofree gchar *subcmd_opt_param = NULL;
+
+  setlocale (LC_ALL, "");
 
   if (g_getenv ("DNF_IN_TREE_PLUGINS") != NULL)
     peas_engine_prepend_search_path (engine,
