@@ -6,4 +6,4 @@ Description = Remove packages
 Authors = Igor Gnatenko <ignatenko@redhat.com>
 License = GPL-3.0+
 Copyright = Copyright © 2016 Igor Gnatenko
-X-Command-Syntax = remove PKG [PKG...]
+X-Command-Syntax = remove PACKAGE [PACKAGE…]

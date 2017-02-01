@@ -6,4 +6,4 @@ Description = Update packages
 Authors = Igor Gnatenko <ignatenko@redhat.com>
 License = GPL-3.0+
 Copyright = Copyright © 2016 Igor Gnatenko
-X-Command-Syntax = update [PKG…]
+X-Command-Syntax = update [PACKAGE…]
