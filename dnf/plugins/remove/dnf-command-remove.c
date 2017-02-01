@@ -66,7 +66,7 @@ dnf_command_remove_run (DnfCommand      *cmd,
     }
 
   /* Remove each package */
-  for (GStrv pkg = pkgs; *pkg != NULL; *pkg++)
+  for (GStrv pkg = pkgs; *pkg != NULL; pkg++)
     {
       if (!dnf_context_remove (ctx, *pkg, error))
         return FALSE;

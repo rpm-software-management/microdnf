@@ -64,7 +64,7 @@ dnf_command_update_run (DnfCommand      *cmd,
   else
     {
       /* Update each package */
-      for (GStrv pkg = pkgs; *pkg != NULL; *pkg++)
+      for (GStrv pkg = pkgs; *pkg != NULL; pkg++)
         {
           if (!dnf_context_update (ctx, *pkg, error))
             return FALSE;

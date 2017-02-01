@@ -64,7 +64,7 @@ dnf_command_clean_run (DnfCommand      *cmd,
       return FALSE;
     }
 
-  if (g_strcmp0 (*types, "all") != 0)
+  if (g_strcmp0 (types[0], "all") != 0)
     {
       g_set_error (error,
                    G_IO_ERROR,
@@ -73,7 +73,7 @@ dnf_command_clean_run (DnfCommand      *cmd,
       return FALSE;
     }
 
-  if (*(types+1) != NULL)
+  if (types[1] != NULL)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,

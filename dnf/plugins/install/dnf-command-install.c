@@ -68,7 +68,7 @@ dnf_command_install_run (DnfCommand      *cmd,
     }
 
   /* Install each package */
-  for (GStrv pkg = pkgs; *pkg != NULL; *pkg++)
+  for (GStrv pkg = pkgs; *pkg != NULL; pkg++)
     {
       if (!dnf_context_install (ctx, *pkg, error))
         return FALSE;
