@@ -3,6 +3,7 @@
  * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
  * Copyright © 2016 Colin Walters <walters@verbum.org>
  * Copyright © 2016 Igor Gnatenko <ignatenko@redhat.com>
+ * Copyright © 2017 Jaroslav Rohel <jrohel@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +27,7 @@
 
 static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
+static gboolean show_help = FALSE;
 
 static gboolean
 process_global_option (const gchar  *option_name,
@@ -39,11 +41,11 @@ process_global_option (const gchar  *option_name,
   gboolean ret;
   if (g_strcmp0 (option_name, "--disablerepo") == 0)
     {
-      ret = dnf_context_repo_disable (ctx, value, &local_error);
+      ret = show_help ? TRUE : dnf_context_repo_disable (ctx, value, &local_error);
     }
   else if (g_strcmp0 (option_name, "--enablerepo") == 0)
     {
-      ret = dnf_context_repo_enable (ctx, value, &local_error);
+      ret = show_help ? TRUE : dnf_context_repo_enable (ctx, value, &local_error);
     }
   else if (g_strcmp0 (option_name, "--setopt") == 0)
     {
@@ -161,58 +163,58 @@ main (int   argc,
   g_option_group_add_entries (opt_global_grp, global_opts);
   g_option_context_set_main_group (opt_ctx, opt_global_grp);
 
+  /* Is help option in arguments? */
+  for (gint in = 1; in < argc; in++)
+    {
+      if (g_strcmp0 (argv[in], "--") == 0)
+        break;
+      if (g_strcmp0 (argv[in], "-h") == 0 ||
+          g_strcmp0 (argv[in], "--help") == 0)
+        {
+          show_help = TRUE;
+          break;
+        }
+    }
+
   /*
-   * Parse the global options. We rearrange the options as
-   * necessary, in order to pass relevant options through
-   * to the commands, but also have them take effect globally.
+   * Parse the global options.
+   * Initialize dnf context only if help is not requested.
    */
-  const gchar *cmd_name = NULL;
-  gboolean show_help = FALSE;
-  gint in, out;
-  for (in = 1, out = 1; in < argc; in++, out++)
+  if (!show_help)
     {
-      /* The non-option is the command, take it out of the arguments */
-      if (argv[in][0] != '-')
-        {
-          if (cmd_name == NULL)
-            {
-              cmd_name = argv[in];
-              out--;
-              continue;
-            }
-        }
-      else
-        {
-          if (g_strcmp0 (argv[in], "--") == 0)
-            break;
-          if (cmd_name == NULL &&
-              (g_strcmp0 (argv[in], "-h") == 0 ||
-               g_strcmp0 (argv[in], "--help") == 0))
-            show_help = TRUE;
-        }
-      argv[out] = argv[in];
+      if (!dnf_context_setup (ctx, NULL, &error))
+        goto out;
     }
-  argc = out;
-
-  if (show_help)
-    {
-      g_set_prgname (argv[0]);
-      g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
-      g_print ("%s", help);
-      goto out;
-    }
-
-  if (!dnf_context_setup (ctx, NULL, &error))
+  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
     goto out;
-  if (opt_nodocs)
+  if (!show_help && opt_nodocs)
     {
       DnfTransaction *txn = dnf_context_get_transaction (ctx);
       dnf_transaction_set_flags (txn,
                                  dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_NODOCS);
     }
 
-  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
-    goto out;
+  /*
+   * The first non-option is the command.
+   * Get it and remove it from arguments.
+   */
+  const gchar *cmd_name = NULL;
+  for (gint in = 1; in < argc; in++)
+    {
+      if (cmd_name != NULL)
+        argv[in-1] = argv[in];
+      else if (argv[in][0] != '-')
+        cmd_name = argv[in];
+    }
+  if (cmd_name != NULL) --argc;
+
+  if (cmd_name == NULL && show_help)
+    {
+      g_set_prgname (argv[0]);
+      g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
+      g_print ("%s", help);
+      goto out;
+    }
 
   PeasPluginInfo *plug = NULL;
   PeasExtension *exten = NULL;
