@@ -2,7 +2,7 @@
  *
  * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
  * Copyright © 2016 Colin Walters <walters@verbum.org>
- * Copyright © 2016 Igor Gnatenko <ignatenko@redhat.com>
+ * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
  * Copyright © 2017 Jaroslav Rohel <jrohel@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -104,6 +104,49 @@ context_new (void)
   return ctx;
 }
 
+static void
+state_action_changed_cb (DnfState       *state,
+                         DnfStateAction  action,
+                         const gchar    *action_hint)
+{
+  switch (action)
+    {
+      case DNF_STATE_ACTION_DOWNLOAD_METADATA:
+        g_print("Downloading metadata...\n");
+        break;
+      case DNF_STATE_ACTION_DOWNLOAD_PACKAGES:
+        g_print("Downloading: %s (%u%%)\n", action_hint,
+                dnf_state_get_percentage (state));
+        break;
+      case DNF_STATE_ACTION_TEST_COMMIT:
+        g_print("Running transaction test...\n");
+        break;
+      case DNF_STATE_ACTION_INSTALL:
+        g_print("Installing: %s\n", action_hint);
+        break;
+      case DNF_STATE_ACTION_REMOVE:
+        g_print("Removing: %s\n", action_hint);
+        break;
+      case DNF_STATE_ACTION_UPDATE:
+        g_print("Updating: %s\n", action_hint);
+        break;
+      case DNF_STATE_ACTION_OBSOLETE:
+        g_print("Obsoleting: %s\n", action_hint);
+        break;
+      case DNF_STATE_ACTION_REINSTALL:
+        g_print("Reinstalling: %s\n", action_hint);
+        break;
+      case DNF_STATE_ACTION_DOWNGRADE:
+        g_print("Downgrading: %s\n", action_hint);
+        break;
+      case DNF_STATE_ACTION_CLEANUP:
+        g_print("Cleanup: %s\n", action_hint);
+      default:
+        break;
+    }
+}
+
+
 int
 main (int   argc,
       char *argv[])
@@ -189,6 +232,11 @@ main (int   argc,
     {
       if (!dnf_context_setup (ctx, NULL, &error))
         goto out;
+      DnfState *state = dnf_context_get_state (ctx);
+      g_signal_connect (state, "action-changed",
+                        G_CALLBACK (state_action_changed_cb),
+                        NULL);
+
     }
   if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
     goto out;
