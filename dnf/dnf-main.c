@@ -29,6 +29,7 @@
 static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
 static gboolean show_help = FALSE;
+static gboolean dl_pkgs_printed = FALSE;
 
 static gboolean
 process_global_option (const gchar  *option_name,
@@ -115,8 +116,11 @@ state_action_changed_cb (DnfState       *state,
         g_print("Downloading metadata...\n");
         break;
       case DNF_STATE_ACTION_DOWNLOAD_PACKAGES:
-        g_print("Downloading: %s (%u%%)\n", action_hint,
-                dnf_state_get_percentage (state));
+        if (!dl_pkgs_printed)
+          {
+            g_print("Downloading packages...\n");
+            dl_pkgs_printed = TRUE;
+          }
         break;
       case DNF_STATE_ACTION_TEST_COMMIT:
         g_print("Running transaction test...\n");
@@ -141,6 +145,7 @@ state_action_changed_cb (DnfState       *state,
         break;
       case DNF_STATE_ACTION_CLEANUP:
         g_print("Cleanup: %s\n", action_hint);
+        break;
       default:
         break;
     }
