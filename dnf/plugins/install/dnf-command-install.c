@@ -2,7 +2,7 @@
  *
  * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
  * Copyright © 2016 Colin Walters <walters@verbum.org>
- * Copyright © 2016 Igor Gnatenko <ignatenko@redhat.com>
+ * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,8 @@ dnf_command_install_run (DnfCommand      *cmd,
     }
   if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), DNF_INSTALL, error))
     return FALSE;
-  dnf_utils_print_transaction (ctx);
+  if (!dnf_utils_print_transaction (ctx))
+    return TRUE;
   if (!dnf_context_run (ctx, NULL, error))
     return FALSE;
   g_print ("Complete.\n");
