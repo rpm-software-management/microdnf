@@ -1,7 +1,7 @@
 /* dnf-utils.h
  *
  * Copyright © 2016 Colin Walters <walters@verbum.org>
- * Copyright © 2016 Igor Gnatenko <ignatenko@redhat.com>
+ * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,6 @@
 
 G_BEGIN_DECLS
 
-void dnf_utils_print_transaction (DnfContext *ctx);
+gboolean dnf_utils_print_transaction (DnfContext *ctx);
 
 G_END_DECLS

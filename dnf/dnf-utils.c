@@ -2,7 +2,7 @@
  *
  * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
  * Copyright © 2016 Colin Walters <walters@verbum.org>
- * Copyright © 2016 Igor Gnatenko <ignatenko@redhat.com>
+ * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 #include "dnf-utils.h"
 
-void
+gboolean
 dnf_utils_print_transaction (DnfContext *ctx)
 {
   g_autoptr(GPtrArray) pkgs = dnf_goal_get_packages (dnf_context_get_goal (ctx),
@@ -30,16 +30,18 @@ dnf_utils_print_transaction (DnfContext *ctx)
                                                      DNF_PACKAGE_INFO_UPDATE,
                                                      DNF_PACKAGE_INFO_REMOVE,
                                                      -1);
-  g_print ("Transaction: ");
+
   if (pkgs->len == 0)
-    g_print ("(empty)");
-  else
-    g_print ("%u packages", pkgs->len);
-  g_print ("\n");
+    {
+      g_print ("Nothing to do.\n");
+      return FALSE;
+    }
+  g_print ("Transaction: %u packages\n", pkgs->len);
 
   for (guint i = 0; i < pkgs->len; i++)
     {
       DnfPackage *pkg = pkgs->pdata[i];
       g_print ("%s (%s)\n", dnf_package_get_nevra (pkg), dnf_package_get_reponame (pkg));
     }
+  return TRUE;
 }
