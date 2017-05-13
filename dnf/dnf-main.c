@@ -56,6 +56,12 @@ process_global_option (const gchar  *option_name,
           opt_nodocs = TRUE;
           ret = TRUE;
         }
+      else if (g_str_match_string ("deltarpm=", value, FALSE) == TRUE)
+        {
+          /* FIXME: Actually handle DeltaRPMs and make this mean something */
+          g_print("No DeltaRPM support, so ignoring deltarpm setting!\n");
+          ret = TRUE;
+        }
       else
         {
           local_error = g_error_new (G_OPTION_ERROR,
