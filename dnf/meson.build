@@ -48,6 +48,7 @@ executable(
     gobject,
     libpeas,
     libdnf,
+    scols,
   ],
   c_args : [
     '-DBUILDDIR="@0@"'.format(meson.current_build_dir()),

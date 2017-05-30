@@ -31,7 +31,8 @@ target_link_libraries (microdnf
                        ${GLIB_LIBRARIES}
                        ${GOBJECT_LIBRARIES}
                        ${PEAS_LIBRARIES}
-                       ${LIBDNF_LIBRARIES})
+                       ${LIBDNF_LIBRARIES}
+                       ${SCOLS_LIBRARIES})
 target_compile_definitions (microdnf
                             PRIVATE -DBUILDDIR="${CMAKE_CURRENT_BINARY_DIR}"
                             PRIVATE -DSRCDIR="${CMAKE_CURRENT_SOURCE_DIR}")
