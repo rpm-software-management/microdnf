@@ -19,6 +19,11 @@
  */
 
 #include "dnf-utils.h"
+#include <libsmartcols.h>
+
+
+// transaction details columns
+enum { COL_NEVRA, COL_REPO, COL_SIZE };
 
 
 static gint
@@ -29,14 +34,20 @@ dnf_package_cmp_cb (DnfPackage **pkg1, DnfPackage **pkg2)
 
 
 gboolean
-dnf_utils_print_transaction_packages (GPtrArray *pkgs)
+dnf_utils_add_transaction_packages (struct libscols_table *tb, struct libscols_line *parent, GPtrArray *pkgs)
 {
   // sort packages by NEVRA
   g_ptr_array_sort (pkgs, (GCompareFunc) dnf_package_cmp_cb);
+
+  struct libscols_line *ln;
   for (guint i = 0; i < pkgs->len; i++)
     {
       DnfPackage *pkg = pkgs->pdata[i];
-      g_print (" %s (%s, %s)\n", dnf_package_get_nevra (pkg), dnf_package_get_reponame (pkg), g_format_size (dnf_package_get_size (pkg)));
+
+        ln = scols_table_new_line(tb, parent);
+        scols_line_set_data(ln, COL_NEVRA, dnf_package_get_nevra (pkg));
+        scols_line_set_data(ln, COL_REPO, dnf_package_get_reponame (pkg));
+        scols_line_set_data(ln, COL_SIZE, g_format_size (dnf_package_get_size (pkg)));
     }
 }
 
@@ -58,13 +69,28 @@ dnf_utils_print_transaction (DnfContext *ctx)
       return FALSE;
     }
 
+  struct libscols_table *tb;
+  struct libscols_line *ln;
+  struct libscols_symbols *sb;
+
+  tb = scols_new_table ();
+  scols_table_new_column (tb, "Package",    0.7, SCOLS_FL_TREE);
+  scols_table_new_column (tb, "Repository", 0.2, SCOLS_FL_TRUNC);
+  scols_table_new_column (tb, "Size",       0.1, SCOLS_FL_RIGHT);
+  scols_table_enable_maxout (tb, 1);
+  sb = scols_new_symbols ();
+  scols_symbols_set_branch (sb, " ");
+  scols_symbols_set_right (sb, " ");
+  scols_table_set_symbols (tb, sb);
+
   g_autoptr(GPtrArray) pkgs_install = dnf_goal_get_packages (dnf_context_get_goal (ctx),
                                                              DNF_PACKAGE_INFO_INSTALL,
                                                              -1);
   if (pkgs_install->len != 0)
     {
-      g_print ("Installing:\n");
-      dnf_utils_print_transaction_packages (pkgs_install);
+      ln = scols_table_new_line(tb, NULL);
+      scols_line_set_data(ln, COL_NEVRA, "Installing:");
+      dnf_utils_add_transaction_packages (tb, ln, pkgs_install);
     }
 
 
@@ -73,8 +99,9 @@ dnf_utils_print_transaction (DnfContext *ctx)
                                                                -1);
   if (pkgs_reinstall->len != 0)
     {
-      g_print ("Reinstalling:\n");
-      dnf_utils_print_transaction_packages (pkgs_reinstall);
+      ln = scols_table_new_line(tb, NULL);
+      scols_line_set_data(ln, COL_NEVRA, "Reinstalling:");
+      dnf_utils_add_transaction_packages (tb, ln, pkgs_reinstall);
     }
 
   g_autoptr(GPtrArray) pkgs_upgrade = dnf_goal_get_packages (dnf_context_get_goal (ctx),
@@ -82,8 +109,9 @@ dnf_utils_print_transaction (DnfContext *ctx)
                                                              -1);
   if (pkgs_upgrade->len != 0)
     {
-      g_print ("Upgrading:\n");
-      dnf_utils_print_transaction_packages (pkgs_upgrade);
+      ln = scols_table_new_line(tb, NULL);
+      scols_line_set_data(ln, COL_NEVRA, "Upgrading:");
+      dnf_utils_add_transaction_packages (tb, ln, pkgs_upgrade);
     }
 
   g_autoptr(GPtrArray) pkgs_remove = dnf_goal_get_packages (dnf_context_get_goal (ctx),
@@ -91,8 +119,9 @@ dnf_utils_print_transaction (DnfContext *ctx)
                                                             -1);
   if (pkgs_remove->len != 0)
     {
-      g_print ("Removing:\n");
-      dnf_utils_print_transaction_packages (pkgs_remove);
+      ln = scols_table_new_line(tb, NULL);
+      scols_line_set_data(ln, COL_NEVRA, "Removing:");
+      dnf_utils_add_transaction_packages (tb, ln, pkgs_remove);
     }
 
   g_autoptr(GPtrArray) pkgs_downgrade = dnf_goal_get_packages (dnf_context_get_goal (ctx),
@@ -100,16 +129,20 @@ dnf_utils_print_transaction (DnfContext *ctx)
                                                                -1);
   if (pkgs_downgrade->len != 0)
     {
-      g_print ("Downgrading:\n");
-      dnf_utils_print_transaction_packages (pkgs_downgrade);
+      ln = scols_table_new_line(tb, NULL);
+      scols_line_set_data(ln, COL_NEVRA, "Downgrading:");
+      dnf_utils_add_transaction_packages (tb, ln, pkgs_downgrade);
     }
 
+  scols_print_table(tb);
+  scols_unref_table(tb);
+
   g_print ("Transaction Summary:\n");
-  g_print (" %-10s %4d packages\n", "Install", pkgs_install->len);
-  g_print (" %-10s %4d packages\n", "Reinstall", pkgs_reinstall->len);
-  g_print (" %-10s %4d packages\n", "Upgrade", pkgs_upgrade->len);
-  g_print (" %-10s %4d packages\n", "Remove", pkgs_remove->len);
-  g_print (" %-10s %4d packages\n", "Downgrade", pkgs_downgrade->len);
+  g_print (" %-15s %4d packages\n", "Installing:", pkgs_install->len);
+  g_print (" %-15s %4d packages\n", "Reinstalling:", pkgs_reinstall->len);
+  g_print (" %-15s %4d packages\n", "Upgrading:", pkgs_upgrade->len);
+  g_print (" %-15s %4d packages\n", "Removing:", pkgs_remove->len);
+  g_print (" %-15s %4d packages\n", "Downgrading:", pkgs_downgrade->len);
 
   return TRUE;
 }
