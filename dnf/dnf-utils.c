@@ -80,6 +80,7 @@ dnf_utils_print_transaction (DnfContext *ctx)
   struct libscols_symbols *sb = scols_new_symbols ();
   scols_symbols_set_branch (sb, " ");
   scols_symbols_set_right (sb, " ");
+  scols_symbols_set_vertical (sb, " ");
   scols_table_set_symbols (tb, sb);
 
   g_autoptr(GPtrArray) pkgs_install = dnf_goal_get_packages (dnf_context_get_goal (ctx),
