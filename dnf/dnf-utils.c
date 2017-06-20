@@ -144,5 +144,8 @@ dnf_utils_print_transaction (DnfContext *ctx)
   g_print (" %-15s %4d packages\n", "Removing:", pkgs_remove->len);
   g_print (" %-15s %4d packages\n", "Downgrading:", pkgs_downgrade->len);
 
+  if (dnf_context_get_downloadonly (ctx))
+    g_print ("Downloadonly mode is active. RPM transaction will not be performed.\n");
+  
   return TRUE;
 }

@@ -49,6 +49,11 @@ process_global_option (const gchar  *option_name,
     {
       ret = show_help ? TRUE : dnf_context_repo_enable (ctx, value, &local_error);
     }
+  else if (g_strcmp0 (option_name, "--downloadonly") == 0)
+    {
+      dnf_context_set_downloadonly (ctx, TRUE);
+      ret = TRUE;
+    }
   else if (g_strcmp0 (option_name, "--setopt") == 0)
     {
       if (g_strcmp0 (value, "tsflags=nodocs") == 0)
@@ -81,6 +86,7 @@ static const GOptionEntry global_opts[] = {
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
+  { "downloadonly", '\0', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, process_global_option, "Only download packages", NULL },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set transaction flag, like tsflags=nodocs", "FLAG" },
   { NULL }
 };
