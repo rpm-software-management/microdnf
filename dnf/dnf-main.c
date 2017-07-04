@@ -4,6 +4,7 @@
  * Copyright © 2016 Colin Walters <walters@verbum.org>
  * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
  * Copyright © 2017 Jaroslav Rohel <jrohel@redhat.com>
+ * Copyright © 2017 Neal Gompa <ngompa13@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +50,16 @@ process_global_option (const gchar  *option_name,
     {
       ret = show_help ? TRUE : dnf_context_repo_enable (ctx, value, &local_error);
     }
+  else if (g_strcmp0 (option_name, "--installroot") == 0)
+    {
+      dnf_context_set_install_root (ctx, value);
+      ret = TRUE;
+    }
+  else if (g_strcmp0 (option_name, "--releasever") == 0)
+    {
+      dnf_context_set_release_ver (ctx, value);
+      ret = TRUE;
+    }
   else if (g_strcmp0 (option_name, "--setopt") == 0)
     {
       if (g_strcmp0 (value, "tsflags=nodocs") == 0)
@@ -80,6 +91,8 @@ static const GOptionEntry global_opts[] = {
   { "assumeyes", 'y', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &opt_yes, "Does nothing, we always assume yes", NULL },
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
+  { "installroot", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set install root", "PATH" },
+  { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set the release version", "RELVER" },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set transaction flag, like tsflags=nodocs", "FLAG" },
   { NULL }
