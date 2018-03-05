@@ -151,6 +151,17 @@ state_action_changed_cb (DnfState       *state,
     }
 }
 
+static GOptionGroup *
+new_global_opt_group (DnfContext *ctx)
+{
+  GOptionGroup *opt_grp = g_option_group_new ("global",
+                                              "Global Options:",
+                                              "Show global help options",
+                                              ctx,
+                                              NULL);
+  g_option_group_add_entries (opt_grp, global_opts);
+  return opt_grp;
+}
 
 int
 main (int   argc,
@@ -206,13 +217,7 @@ main (int   argc,
   g_string_free (cmd_summary, TRUE);
   g_option_context_set_ignore_unknown_options (opt_ctx, TRUE);
   g_option_context_set_help_enabled (opt_ctx, FALSE);
-  GOptionGroup *opt_global_grp = g_option_group_new ("global",
-                                                     "Global Options:",
-                                                     "Show global help options",
-                                                     ctx,
-                                                     NULL);
-  g_option_group_add_entries (opt_global_grp, global_opts);
-  g_option_context_set_main_group (opt_ctx, opt_global_grp);
+  g_option_context_set_main_group (opt_ctx, new_global_opt_group (ctx));
 
   /* Is help option in arguments? */
   for (gint in = 1; in < argc; in++)
@@ -306,7 +311,7 @@ main (int   argc,
     peas_plugin_info_get_external_data (plug, "Command-Syntax"),
     peas_plugin_info_get_description (plug));
   subcmd_opt_ctx = g_option_context_new (subcmd_opt_param);
-  g_option_context_add_group (subcmd_opt_ctx, opt_global_grp);
+  g_option_context_add_group (subcmd_opt_ctx, new_global_opt_group (ctx));
   if (!dnf_command_run (DNF_COMMAND (exten), argc, argv, subcmd_opt_ctx, ctx, &error))
     goto out;
 
