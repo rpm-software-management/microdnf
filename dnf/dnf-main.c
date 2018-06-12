@@ -100,7 +100,6 @@ context_new (void)
   dnf_context_set_check_transaction (ctx, TRUE);
   dnf_context_set_keep_cache (ctx, FALSE);
   dnf_context_set_cache_age (ctx, 0);
-  dnf_context_set_yumdb_enabled (ctx, FALSE);
 
   return ctx;
 }
