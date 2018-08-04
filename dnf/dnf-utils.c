@@ -146,6 +146,12 @@ dnf_utils_print_transaction (DnfContext *ctx)
   g_print (" %-15s %4d packages\n", "Upgrading:", pkgs_upgrade->len);
   g_print (" %-15s %4d packages\n", "Removing:", pkgs_remove->len);
   g_print (" %-15s %4d packages\n", "Downgrading:", pkgs_downgrade->len);
+  DnfSack * sack = hy_goal_get_sack(dnf_context_get_goal(ctx));
+  g_autofree char * report = dnf_sack_get_module_report(sack);
+  if (report)
+    {
+      g_print ("%s\n", report);
+    }
 
   return TRUE;
 }
