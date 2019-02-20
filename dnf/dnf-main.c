@@ -215,7 +215,11 @@ main (int   argc,
       if (!peas_engine_load_plugin (engine, info))
         continue;
       if (peas_engine_provides_extension (engine, info, DNF_TYPE_COMMAND))
-        g_string_append_printf (cmd_summary, "\n  %s - %s", peas_plugin_info_get_name (info), peas_plugin_info_get_description (info));
+        /*
+         * At least 2 spaces between the command and its description are needed
+         * so that help2man formats it correctly.
+         */
+        g_string_append_printf (cmd_summary, "\n  %-16s     %s", peas_plugin_info_get_name (info), peas_plugin_info_get_description (info));
     }
   g_option_context_set_summary (opt_ctx, cmd_summary->str);
   g_string_free (cmd_summary, TRUE);
