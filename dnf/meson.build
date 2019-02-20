@@ -40,7 +40,7 @@ microdnf_srcs = [
   'plugins/clean/dnf-command-clean.c',
 ]
 
-executable(
+microdnf = executable(
   'microdnf',
   sources : microdnf_srcs,
   dependencies : [

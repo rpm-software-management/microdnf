@@ -1,5 +1,5 @@
 project('microdnf', 'c',
-        version : '1',
+        version : '3.0.1',
         license : 'GPL-3.0+',
         default_options : [
           'b_asneeded=True',
@@ -44,3 +44,22 @@ add_project_arguments(
 )
 
 subdir('dnf')
+
+help2man = find_program('help2man', required: true)
+if help2man.found()
+  help2man_opts = [
+    '--version-string=' + meson.project_version(),
+    '--no-info',
+    '--section=8',
+    '--name=Micro DNF',
+  ]
+
+  custom_target('microdnf.8',
+                output: 'microdnf.8',
+                command: [
+                  help2man, help2man_opts, '--output=@OUTPUT@', microdnf
+                ],
+                install: true,
+                install_dir: get_option('mandir') + '/man8',
+  )
+endif
