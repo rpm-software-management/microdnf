@@ -30,6 +30,7 @@ static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
 static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
+static GSList *enable_disable_repos = NULL;
 
 static gboolean
 process_global_option (const gchar  *option_name,
@@ -40,21 +41,24 @@ process_global_option (const gchar  *option_name,
   g_autoptr(GError) local_error = NULL;
   DnfContext *ctx = DNF_CONTEXT (data);
 
-  gboolean ret;
+  gboolean ret = TRUE;
   if (g_strcmp0 (option_name, "--disablerepo") == 0)
     {
-      ret = show_help ? TRUE : dnf_context_repo_disable (ctx, value, &local_error);
+      enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("d", value, NULL));
     }
   else if (g_strcmp0 (option_name, "--enablerepo") == 0)
     {
-      ret = show_help ? TRUE : dnf_context_repo_enable (ctx, value, &local_error);
+      enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("e", value, NULL));
+    }
+  else if (g_strcmp0 (option_name, "--releasever") == 0)
+    {
+      dnf_context_set_release_ver (ctx, value);
     }
   else if (g_strcmp0 (option_name, "--setopt") == 0)
     {
       if (g_strcmp0 (value, "tsflags=nodocs") == 0)
         {
           opt_nodocs = TRUE;
-          ret = TRUE;
         }
       else
         {
@@ -81,6 +85,7 @@ static const GOptionEntry global_opts[] = {
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
+  { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set transaction flag, like tsflags=nodocs", "FLAG" },
   { NULL }
 };
@@ -235,6 +240,11 @@ main (int   argc,
 
   /*
    * Parse the global options.
+   */
+  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
+    goto out;
+
+  /*
    * Initialize dnf context only if help is not requested.
    */
   if (!show_help)
@@ -246,14 +256,24 @@ main (int   argc,
                         G_CALLBACK (state_action_changed_cb),
                         NULL);
 
-    }
-  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
-    goto out;
-  if (!show_help && opt_nodocs)
-    {
-      DnfTransaction *txn = dnf_context_get_transaction (ctx);
-      dnf_transaction_set_flags (txn,
-                                 dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_NODOCS);
+      for (GSList * item = enable_disable_repos; item; item = item->next)
+        {
+          gchar * item_data = item->data;
+          int ret;
+          if (item_data[0] == 'd')
+            ret = dnf_context_repo_disable (ctx, item_data+1, &error);
+          else
+            ret = dnf_context_repo_enable (ctx, item_data+1, &error);
+          if (!ret)
+            goto out;
+        }
+
+      if (opt_nodocs)
+        {
+          DnfTransaction *txn = dnf_context_get_transaction (ctx);
+          dnf_transaction_set_flags (txn,
+                                     dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_NODOCS);
+        }
     }
 
   /*
@@ -271,7 +291,7 @@ main (int   argc,
   if (cmd_name != NULL) --argc;
 
   g_option_context_set_help_enabled (opt_ctx, TRUE);
-  
+
   if (cmd_name == NULL && show_help)
     {
       g_set_prgname (argv[0]);
