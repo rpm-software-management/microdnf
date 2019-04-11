@@ -39,7 +39,12 @@ static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
 static GSList *enable_disable_repos = NULL;
 static gboolean disable_plugins_loading = FALSE;
+static gboolean config_used = FALSE;
 static gboolean enable_disable_plugin_used = FALSE;
+static gboolean installroot_used = FALSE;
+static gboolean cachedir_used = FALSE;
+static gboolean reposdir_used = FALSE;
+static gboolean varsdir_used = FALSE;
 
 static gboolean
 process_global_option (const gchar  *option_name,
@@ -53,6 +58,7 @@ process_global_option (const gchar  *option_name,
   gboolean ret = TRUE;
   if (g_strcmp0 (option_name, "--config") == 0)
     {
+      config_used = TRUE;
       dnf_context_set_config_file_path (value);
     }
   else if (g_strcmp0 (option_name, "--disablerepo") == 0)
@@ -76,6 +82,21 @@ process_global_option (const gchar  *option_name,
       for (char **it = patterns; *it; ++it)
         dnf_context_enable_plugins (*it);
       enable_disable_plugin_used = TRUE;
+    }
+  else if (g_strcmp0 (option_name, "--installroot") == 0)
+    {
+      installroot_used = TRUE;
+      if (value[0] != '/')
+        {
+          local_error = g_error_new (G_OPTION_ERROR,
+                                     G_OPTION_ERROR_BAD_VALUE,
+                                     "Absolute path must be used");
+          ret = FALSE;
+        }
+      else
+        {
+          dnf_context_set_install_root (ctx, value);
+        }
     }
   else if (g_strcmp0 (option_name, "--releasever") == 0)
     {
@@ -111,6 +132,7 @@ process_global_option (const gchar  *option_name,
         }
       else if (strcmp (setopt[0], "cachedir") == 0)
         {
+          cachedir_used = TRUE;
           const char *cachedir = setopt[1];
           if (cachedir[0] != '\0')
             {
@@ -144,11 +166,13 @@ process_global_option (const gchar  *option_name,
         }
       else if (strcmp (setopt[0], "reposdir") == 0)
         {
+          reposdir_used = TRUE;
           g_auto(GStrv) reposdir = g_strsplit (setopt[1], ",", -1);
           dnf_context_set_repos_dir (ctx, (const gchar * const *)reposdir);
         }
       else if (strcmp (setopt[0], "varsdir") == 0)
         {
+          varsdir_used = TRUE;
           g_auto(GStrv) varsdir = g_strsplit (setopt[1], ",", -1);
           dnf_context_set_vars_dir (ctx, (const gchar * const *)varsdir);
         }
@@ -181,6 +205,7 @@ static const GOptionEntry global_opts[] = {
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
   { "enableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable plugins by name", "name" },
   { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
+  { "installroot", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set install root", "PATH" },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "noplugins", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &disable_plugins_loading, "Disable loading of plugins", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
@@ -358,6 +383,16 @@ main (int   argc,
    */
   if (!show_help)
     {
+      if (installroot_used &&
+          !(config_used && disable_plugins_loading && cachedir_used && reposdir_used && varsdir_used))
+        {
+          error = g_error_new_literal (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+            "The \"--installroot\" argument must be used together with \"--config\", "
+            "\"--noplugins\", \"--setopt=cachedir=<path>\", \"--setopt=reposdir=<path>\", "
+            "\"--setopt=varsdir=<path>\" arguments.");
+          goto out;
+        }
+        
       if (disable_plugins_loading)
         dnf_context_set_plugins_all_disabled (disable_plugins_loading);
 
