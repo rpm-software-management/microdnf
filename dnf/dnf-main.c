@@ -50,6 +50,10 @@ process_global_option (const gchar  *option_name,
     {
       enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("e", value, NULL));
     }
+  else if (g_strcmp0 (option_name, "--releasever") == 0)
+    {
+      dnf_context_set_release_ver (ctx, value);
+    }
   else if (g_strcmp0 (option_name, "--setopt") == 0)
     {
       if (g_strcmp0 (value, "tsflags=nodocs") == 0)
@@ -81,6 +85,7 @@ static const GOptionEntry global_opts[] = {
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
+  { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set transaction flag, like tsflags=nodocs", "FLAG" },
   { NULL }
 };
