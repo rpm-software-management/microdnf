@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.8.5)
 project (microdnf C)
+set (PROJECT_VERSION 3.0.1)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -24,6 +25,25 @@ set (PKG_LIBDIR ${CMAKE_INSTALL_FULL_LIBDIR}/dnf)
 set (PKG_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/dnf)
 add_definitions (-DPACKAGE_LIBDIR="${PKG_LIBDIR}")
 add_definitions (-DPACKAGE_DATADIR="${PKG_DATADIR}")
+
+find_file (HELP2MAN_EXECUTABLE help2man)
+if (NOT HELP2MAN_EXECUTABLE)
+  message (FATAL_ERROR "unable to find help2man")
+endif ()
+
+set (MANPAGE ${CMAKE_CURRENT_BINARY_DIR}/microdnf.8)
+add_custom_command (
+  DEPENDS microdnf
+  OUTPUT ${MANPAGE}
+  COMMAND ${HELP2MAN_EXECUTABLE} $<TARGET_FILE:microdnf>
+  --version-string=${PROJECT_VERSION}
+  --no-info
+  --section=8
+  --name="Micro DNF"
+  --output=${MANPAGE}
+)
+add_custom_target (manpage ALL DEPENDS ${MANPAGE})
+install (FILES ${MANPAGE} DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man8)
 
 include_directories (${GLIB_INCLUDE_DIRS})
 include_directories (${GOBJECT_INCLUDE_DIRS})
