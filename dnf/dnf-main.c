@@ -278,7 +278,10 @@ main (int   argc,
   
   if (cmd_name == NULL && show_help)
     {
-      g_set_prgname (argv[0]);
+      const char *prg_name = strrchr(argv[0], '/') + 1;
+      prg_name = prg_name ? prg_name : argv[0];
+
+      g_set_prgname (prg_name);
       g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
       g_print ("%s", help);
       goto out;
