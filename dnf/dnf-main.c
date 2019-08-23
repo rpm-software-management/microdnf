@@ -298,8 +298,8 @@ main (int   argc,
 
   if (cmd_name == NULL && show_help)
     {
-      const char *prg_name = strrchr(argv[0], '/') + 1;
-      prg_name = prg_name ? prg_name : argv[0];
+      const char *prg_name = strrchr(argv[0], '/');
+      prg_name = prg_name ? prg_name + 1 : argv[0];
 
       g_set_prgname (prg_name);
       g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
