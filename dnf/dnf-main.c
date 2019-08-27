@@ -272,12 +272,16 @@ main (int   argc,
             goto out;
         }
 
+      /* allow downgrades for all transaction types */
+      DnfTransaction *txn = dnf_context_get_transaction (ctx);
+      int flags = dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_ALLOW_DOWNGRADE;
+
       if (opt_nodocs)
         {
-          DnfTransaction *txn = dnf_context_get_transaction (ctx);
-          dnf_transaction_set_flags (txn,
-                                     dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_NODOCS);
+          flags |= DNF_TRANSACTION_FLAG_NODOCS;
         }
+
+      dnf_transaction_set_flags (txn, flags);
     }
 
   /*
