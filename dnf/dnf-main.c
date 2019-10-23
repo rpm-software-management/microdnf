@@ -28,6 +28,7 @@
 
 static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
+static gboolean opt_best = FALSE;
 static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
 static GSList *enable_disable_repos = NULL;
@@ -82,6 +83,7 @@ process_global_option (const gchar  *option_name,
 
 static const GOptionEntry global_opts[] = {
   { "assumeyes", 'y', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &opt_yes, "Does nothing, we always assume yes", NULL },
+  { "best", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_best, "Try the best available package versions in transactions", NULL },
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
@@ -283,7 +285,10 @@ main (int   argc,
 
       dnf_transaction_set_flags (txn, flags);
     }
-
+  if (!show_help && opt_best)
+    {
+        dnf_context_set_best(opt_best);
+    }
   /*
    * The first non-option is the command.
    * Get it and remove it from arguments.
