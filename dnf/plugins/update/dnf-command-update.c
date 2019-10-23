@@ -70,8 +70,12 @@ dnf_command_update_run (DnfCommand      *cmd,
             return FALSE;
         }
     }
-
-  if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), 0, error))
+  DnfGoalActions flags = 0;
+  if (dnf_context_get_best())
+    {
+      flags |= DNF_FORCE_BEST;
+    }
+  if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), flags, error))
     return FALSE;
   if (!dnf_utils_print_transaction (ctx))
     return TRUE;

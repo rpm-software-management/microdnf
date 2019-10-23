@@ -73,7 +73,12 @@ dnf_command_install_run (DnfCommand      *cmd,
       if (!dnf_context_install (ctx, *pkg, error))
         return FALSE;
     }
-  if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), DNF_INSTALL, error))
+  DnfGoalActions flags = DNF_INSTALL;
+  if (dnf_context_get_best())
+    {
+      flags |= DNF_FORCE_BEST;
+    }
+  if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), flags, error))
     return FALSE;
   if (!dnf_utils_print_transaction (ctx))
     return TRUE;
