@@ -29,6 +29,7 @@
 static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
 static gboolean opt_best = FALSE;
+static gboolean opt_nobest = FALSE;
 static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
 static GSList *enable_disable_repos = NULL;
@@ -86,6 +87,7 @@ static const GOptionEntry global_opts[] = {
   { "best", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_best, "Try the best available package versions in transactions", NULL },
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
+  { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set transaction flag, like tsflags=nodocs", "FLAG" },
@@ -284,11 +286,23 @@ main (int   argc,
         }
 
       dnf_transaction_set_flags (txn, flags);
+      if (opt_best && opt_nobest)
+        {
+          error = g_error_new_literal(G_OPTION_ERROR,
+                                      G_OPTION_ERROR_BAD_VALUE,
+                                      "Argument --nobest is not allowed with argument --best");
+          goto out;
+        }
+      if (opt_best)
+        {
+          dnf_context_set_best(TRUE);
+        }
+      else if (opt_nobest)
+        {
+          dnf_context_set_best(FALSE);
+        }
     }
-  if (!show_help && opt_best)
-    {
-        dnf_context_set_best(opt_best);
-    }
+
   /*
    * The first non-option is the command.
    * Get it and remove it from arguments.
