@@ -1,5 +1,5 @@
 Name:           microdnf
-Version:        3.0.1
+Version:        3.0.2
 Release:        1%{?dist}
 Summary:        Minimal C implementation of DNF
 
