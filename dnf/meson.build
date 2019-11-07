@@ -30,6 +30,15 @@ microdnf_srcs = [
   ),
   'plugins/update/dnf-command-update.c',
 
+  # repolist
+  gnome.compile_resources(
+    'dnf-repolist',
+    'plugins/repolist/dnf-command-repolist.gresource.xml',
+    c_name : 'dnf_command_repolist',
+    source_dir : 'plugins/repolist',
+  ),
+  'plugins/repolist/dnf-command-repolist.c',
+
   # clean
   gnome.compile_resources(
     'dnf-clean',
