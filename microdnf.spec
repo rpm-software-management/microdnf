@@ -1,5 +1,5 @@
 Name:           microdnf
-Version:        3.0.2
+Version:        3.1.0
 Release:        1%{?dist}
 Summary:        Minimal C implementation of DNF
 
@@ -18,7 +18,7 @@ BuildRequires:  help2man
 
 %description
 Micro DNF is a very minimal C implementation of DNF's install, upgrade,
-remove, and clean commands, designed to be used for doing simple
+remove, repolist, and clean commands, designed to be used for doing simple
 packaging actions in containers when you don't need full-blown DNF and
 you want the tiniest useful containers possible.
 
