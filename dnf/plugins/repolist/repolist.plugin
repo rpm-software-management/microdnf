@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_repolist
+Embedded = dnf_command_repolist_register_types
+Name = repolist
+Description = List repositories
+Authors = Jaroslav Rohel <jrohel@redhat.com>
+License = GPL-3.0+
+Copyright = Copyright (C) 2019 Red Hat, Inc.
+X-Command-Syntax = repolist [--all] [--disabled] [--enabled]
