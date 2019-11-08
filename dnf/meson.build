@@ -39,6 +39,15 @@ microdnf_srcs = [
   ),
   'plugins/repolist/dnf-command-repolist.c',
 
+  # repoquery
+  gnome.compile_resources(
+    'dnf-repoquery',
+    'plugins/repoquery/dnf-command-repoquery.gresource.xml',
+    c_name : 'dnf_command_repoquery',
+    source_dir : 'plugins/repoquery',
+  ),
+  'plugins/repoquery/dnf-command-repoquery.c',
+
   # clean
   gnome.compile_resources(
     'dnf-clean',

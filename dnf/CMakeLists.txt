@@ -20,6 +20,11 @@ glib_compile_resources (DNF_COMMAND_REPOLIST plugins/repolist/dnf-command-repoli
                         INTERNAL)
 list (APPEND DNF_COMMAND_REPOLIST "plugins/repolist/dnf-command-repolist.c")
 
+glib_compile_resources (DNF_COMMAND_REPOQUERY plugins/repoquery/dnf-command-repoquery.gresource.xml
+                        C_PREFIX dnf_command_repoquery
+                        INTERNAL)
+list (APPEND DNF_COMMAND_REPOQUERY "plugins/repoquery/dnf-command-repoquery.c")
+
 glib_compile_resources (DNF_COMMAND_CLEAN plugins/clean/dnf-command-clean.gresource.xml
                         C_PREFIX dnf_command_clean
                         INTERNAL)
@@ -31,6 +36,7 @@ add_executable (microdnf dnf-main.c ${DNF_SRCS}
                 ${DNF_COMMAND_REMOVE}
                 ${DNF_COMMAND_UPDATE}
                 ${DNF_COMMAND_REPOLIST}
+                ${DNF_COMMAND_REPOQUERY}
                 ${DNF_COMMAND_CLEAN})
 
 target_link_libraries (microdnf
