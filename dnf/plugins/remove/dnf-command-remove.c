@@ -38,6 +38,17 @@ dnf_command_remove_init (DnfCommandRemove *self)
 {
 }
 
+static void
+disable_available_repos (DnfContext *ctx)
+{
+  GPtrArray *repos = dnf_context_get_repos (ctx);
+  for (guint i = 0; i < repos->len; ++i)
+    {
+      DnfRepo * repo = g_ptr_array_index (repos, i);
+      dnf_repo_set_enabled (repo, DNF_REPO_ENABLED_NONE);
+    }
+}
+
 static gboolean
 dnf_command_remove_run (DnfCommand      *cmd,
                          int              argc,
@@ -64,6 +75,8 @@ dnf_command_remove_run (DnfCommand      *cmd,
                            "Packages are not specified");
       return FALSE;
     }
+
+  disable_available_repos (ctx);
 
   /* Remove each package */
   for (GStrv pkg = pkgs; *pkg != NULL; pkg++)
