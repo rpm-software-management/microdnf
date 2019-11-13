@@ -12,7 +12,7 @@ BuildRequires:  meson >= 0.36.0
 BuildRequires:  pkgconfig(glib-2.0) >= 2.44.0
 BuildRequires:  pkgconfig(gobject-2.0) >= 2.44.0
 BuildRequires:  pkgconfig(libpeas-1.0) >= 1.20.0
-BuildRequires:  pkgconfig(libdnf) >= 0.37.1
+BuildRequires:  pkgconfig(libdnf) >= 0.37.2
 BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  help2man
 
