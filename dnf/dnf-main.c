@@ -121,38 +121,45 @@ state_action_changed_cb (DnfState       *state,
   switch (action)
     {
       case DNF_STATE_ACTION_DOWNLOAD_METADATA:
-        g_print("Downloading metadata...\n");
+        g_print ("Downloading metadata...\n");
         break;
       case DNF_STATE_ACTION_DOWNLOAD_PACKAGES:
         if (!dl_pkgs_printed)
           {
-            g_print("Downloading packages...\n");
+            g_print ("Downloading packages...\n");
             dl_pkgs_printed = TRUE;
           }
         break;
       case DNF_STATE_ACTION_TEST_COMMIT:
-        g_print("Running transaction test...\n");
+        g_print ("Running transaction test...\n");
         break;
       case DNF_STATE_ACTION_INSTALL:
-        g_print("Installing: %s\n", action_hint);
+        if (action_hint)
+          g_print ("Installing: %s\n", action_hint);
         break;
       case DNF_STATE_ACTION_REMOVE:
-        g_print("Removing: %s\n", action_hint);
+        if (action_hint)
+          g_print ("Removing: %s\n", action_hint);
         break;
       case DNF_STATE_ACTION_UPDATE:
-        g_print("Updating: %s\n", action_hint);
+        if (action_hint)
+          g_print ("Updating: %s\n", action_hint);
         break;
       case DNF_STATE_ACTION_OBSOLETE:
-        g_print("Obsoleting: %s\n", action_hint);
+        if (action_hint)
+          g_print ("Obsoleting: %s\n", action_hint);
         break;
       case DNF_STATE_ACTION_REINSTALL:
-        g_print("Reinstalling: %s\n", action_hint);
+        if (action_hint)
+          g_print ("Reinstalling: %s\n", action_hint);
         break;
       case DNF_STATE_ACTION_DOWNGRADE:
-        g_print("Downgrading: %s\n", action_hint);
+        if (action_hint)
+          g_print ("Downgrading: %s\n", action_hint);
         break;
       case DNF_STATE_ACTION_CLEANUP:
-        g_print("Cleanup: %s\n", action_hint);
+        if (action_hint)
+          g_print ("Cleanup: %s\n", action_hint);
         break;
       default:
         break;
