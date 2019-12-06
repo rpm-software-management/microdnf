@@ -12,6 +12,15 @@ microdnf_srcs = [
   ),
   'plugins/install/dnf-command-install.c',
 
+  # reinstall
+  gnome.compile_resources(
+    'dnf-reinstall',
+    'plugins/reinstall/dnf-command-reinstall.gresource.xml',
+    c_name : 'dnf_command_reinstall',
+    source_dir : 'plugins/reinstall',
+  ),
+  'plugins/reinstall/dnf-command-reinstall.c',
+
   # remove
   gnome.compile_resources(
     'dnf-remove',

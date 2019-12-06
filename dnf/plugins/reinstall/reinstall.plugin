@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_reinstall
+Embedded = dnf_command_reinstall_register_types
+Name = reinstall
+Description = Reinstall packages
+Authors = Jaroslav Rohel <jrohel@redhat.com>
+License = GPL-3.0+
+Copyright = Copyright (C) 2019 Red Hat, Inc.
+X-Command-Syntax = reinstall PACKAGE [PACKAGE…]

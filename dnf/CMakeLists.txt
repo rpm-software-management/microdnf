@@ -5,6 +5,11 @@ glib_compile_resources (DNF_COMMAND_INSTALL plugins/install/dnf-command-install.
                         INTERNAL)
 list (APPEND DNF_COMMAND_INSTALL "plugins/install/dnf-command-install.c")
 
+glib_compile_resources (DNF_COMMAND_REINSTALL plugins/reinstall/dnf-command-reinstall.gresource.xml
+                        C_PREFIX dnf_command_reinstall
+                        INTERNAL)
+list (APPEND DNF_COMMAND_REINSTALL "plugins/reinstall/dnf-command-reinstall.c")
+
 glib_compile_resources (DNF_COMMAND_REMOVE plugins/remove/dnf-command-remove.gresource.xml
                         C_PREFIX dnf_command_remove
                         INTERNAL)
@@ -33,6 +38,7 @@ list (APPEND DNF_COMMAND_CLEAN "plugins/clean/dnf-command-clean.c")
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 add_executable (microdnf dnf-main.c ${DNF_SRCS}
                 ${DNF_COMMAND_INSTALL}
+                ${DNF_COMMAND_REINSTALL}
                 ${DNF_COMMAND_REMOVE}
                 ${DNF_COMMAND_UPDATE}
                 ${DNF_COMMAND_REPOLIST}
