@@ -47,7 +47,13 @@ compare_nevra (gconstpointer a, gconstpointer b, gpointer user_data)
 }
 
 static void
-dnf_command_reinstall_arg (DnfContext *ctx, const char *arg)
+packageset_free (gpointer pkg_set)
+{
+  dnf_packageset_free (pkg_set);
+}
+
+static gboolean
+dnf_command_reinstall_arg (DnfContext *ctx, const char *arg, GError **error)
 {
   DnfSack *sack = dnf_context_get_sack (ctx);
 
@@ -65,20 +71,26 @@ dnf_command_reinstall_arg (DnfContext *ctx, const char *arg)
   if (installed_pkgs->len == 0)
     {
       g_print ("No match for argument: %s\n", arg);
-      return;
+      return TRUE;
     }
   
   hy_query_filter (query, HY_PKG_REPONAME, HY_NEQ, HY_SYSTEM_REPO_NAME);
   g_autoptr(GPtrArray) available_pkgs = hy_query_run (query);
 
-  /* Nevra of package will be owned by tree but the package itself not (owned by availablePkgs). */
-  g_autoptr(GTree) available_nevra2pkg = g_tree_new_full (compare_nevra, NULL, g_free, NULL);
+  g_autoptr(GTree) available_nevra2pkg_set = g_tree_new_full (compare_nevra, NULL,
+                                                              g_free, packageset_free);
   for (guint i = 0; i < available_pkgs->len; ++i)
     {
       DnfPackage *package = available_pkgs->pdata[i];
-      /* dnf_package_get_nevra() returns pointer to temporary buffer -> copy is needed */
-      gchar *nevra = g_strdup (dnf_package_get_nevra (package));
-      g_tree_insert (available_nevra2pkg, nevra, package);
+      const char *nevra = dnf_package_get_nevra (package);
+      DnfPackageSet *pkg_set = g_tree_lookup (available_nevra2pkg_set, nevra);
+      if (!pkg_set)
+        {
+          pkg_set = dnf_packageset_new (sack);
+          /* dnf_package_get_nevra() returns pointer to temporary buffer -> copy is needed */
+          g_tree_insert (available_nevra2pkg_set, g_strdup (nevra), pkg_set);
+        }
+      dnf_packageset_add (pkg_set, package);
     }
 
   HyGoal goal = dnf_context_get_goal (ctx);
@@ -86,12 +98,18 @@ dnf_command_reinstall_arg (DnfContext *ctx, const char *arg)
     {
       DnfPackage *package = installed_pkgs->pdata[i];
       const char *nevra = dnf_package_get_nevra (package);
-      DnfPackage *available_pkg = g_tree_lookup (available_nevra2pkg, nevra);
-      if (available_pkg)
-        hy_goal_install (goal, available_pkg);
+      DnfPackageSet *available_pkgs = g_tree_lookup (available_nevra2pkg_set, nevra);
+      if (available_pkgs) {
+          g_auto(HySelector) selector = hy_selector_create (sack);
+          hy_selector_pkg_set (selector, available_pkgs);
+          if (!hy_goal_install_selector (goal, selector, error))
+            return FALSE;
+        }
       else 
         g_print ("Installed package %s not available.\n", nevra);
     }
+    
+  return TRUE;
 }
 
 static gboolean
@@ -125,7 +143,10 @@ dnf_command_reinstall_run (DnfCommand      *cmd,
   dnf_context_setup_sack_with_flags (ctx, state, DNF_CONTEXT_SETUP_SACK_FLAG_NONE, error);
 
   for (GStrv pkg = pkgs; *pkg != NULL; pkg++)
-    dnf_command_reinstall_arg (ctx, *pkg);
+    {
+      if (!dnf_command_reinstall_arg (ctx, *pkg, error))
+        return FALSE;
+    }
 
   DnfGoalActions flags = DNF_INSTALL;
   if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), flags, error))
