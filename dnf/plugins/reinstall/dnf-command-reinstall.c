@@ -149,6 +149,8 @@ dnf_command_reinstall_run (DnfCommand      *cmd,
     }
 
   DnfGoalActions flags = DNF_INSTALL;
+  if (!dnf_context_get_install_weak_deps ())
+    flags |= DNF_IGNORE_WEAK_DEPS;  
   if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), flags, error))
     return FALSE;
   
