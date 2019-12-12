@@ -21,6 +21,7 @@
 
 #include <locale.h>
 #include <stdlib.h>
+#include <string.h>
 #include <glib.h>
 #include <libpeas/peas.h>
 #include <libdnf/libdnf.h>
@@ -58,9 +59,38 @@ process_global_option (const gchar  *option_name,
     }
   else if (g_strcmp0 (option_name, "--setopt") == 0)
     {
-      if (g_strcmp0 (value, "tsflags=nodocs") == 0)
+      g_auto(GStrv) setopt = g_strsplit (value, "=", 2);
+      if (!setopt[0] || !setopt[1])
         {
-          opt_nodocs = TRUE;
+          local_error = g_error_new (G_OPTION_ERROR,
+                                     G_OPTION_ERROR_BAD_VALUE,
+                                     "Missing value in: %s", value);
+          ret = FALSE;
+        }
+      else if (strcmp (setopt[0], "tsflags") == 0)
+        {
+          if (strcmp (setopt[1], "nodocs") == 0)
+            opt_nodocs = TRUE;
+          else 
+            {
+              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                                        "Unknown tsflag: %s", setopt[1]);
+              ret = FALSE;
+            }
+        }
+      else if (strcmp (setopt[0], "install_weak_deps") == 0)
+        {
+          const char *setopt_val = setopt[1];
+          if (setopt_val[0] == '1' && setopt_val[1] == '\0')
+            dnf_context_set_install_weak_deps (TRUE);
+          else if (setopt_val[0] == '0' && setopt_val[1] == '\0')
+            dnf_context_set_install_weak_deps (FALSE);
+          else
+            {
+              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                                         "Invalid boolean value \"%s\" in: %s", setopt[1], value);
+              ret = FALSE;
+            }
         }
       else
         {
@@ -90,7 +120,8 @@ static const GOptionEntry global_opts[] = {
   { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
-  { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set transaction flag, like tsflags=nodocs", "FLAG" },
+  { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
+    "Override a configuration option (install_weak_deps=0/1, tsflags=nodocs)", "<option>=<value>" },
   { NULL }
 };
 
