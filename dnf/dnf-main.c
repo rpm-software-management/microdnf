@@ -61,6 +61,18 @@ process_global_option (const gchar  *option_name,
     {
       enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("e", value, NULL));
     }
+  if (g_strcmp0 (option_name, "--disableplugin") == 0)
+    {
+      g_auto(GStrv) patterns = g_strsplit (value, ",", -1);
+      for (char **it = patterns; *it; ++it)
+        dnf_context_disable_plugins (*it);
+    }
+  else if (g_strcmp0 (option_name, "--enableplugin") == 0)
+    {
+      g_auto(GStrv) patterns = g_strsplit (value, ",", -1);
+      for (char **it = patterns; *it; ++it)
+        dnf_context_enable_plugins (*it);
+    }
   else if (g_strcmp0 (option_name, "--releasever") == 0)
     {
       dnf_context_set_release_ver (ctx, value);
@@ -142,7 +154,9 @@ static const GOptionEntry global_opts[] = {
   { "best", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_best, "Try the best available package versions in transactions", NULL },
   { "config", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Configuration file location", "<config file>" },
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
+  { "disableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable plugins by name", "name" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
+  { "enableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable plugins by name", "name" },
   { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
