@@ -38,6 +38,7 @@ static gboolean opt_test = FALSE;
 static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
 static GSList *enable_disable_repos = NULL;
+static gboolean disable_plugins_loading = FALSE;
 
 static gboolean
 process_global_option (const gchar  *option_name,
@@ -159,6 +160,7 @@ static const GOptionEntry global_opts[] = {
   { "enableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable plugins by name", "name" },
   { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
+  { "noplugins", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &disable_plugins_loading, "Disable loading of plugins", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
     "Override a configuration option (install_weak_deps=0/1, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
@@ -334,6 +336,9 @@ main (int   argc,
    */
   if (!show_help)
     {
+      if (disable_plugins_loading)
+        dnf_context_set_plugins_all_disabled (disable_plugins_loading);
+
       if (!dnf_context_setup (ctx, NULL, &error))
         goto out;
       DnfState *state = dnf_context_get_state (ctx);
