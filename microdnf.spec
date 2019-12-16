@@ -1,3 +1,5 @@
+%global libdnf_version 0.38.0
+
 Name:           microdnf
 Version:        3.3.0
 Release:        1%{?dist}
@@ -12,9 +14,11 @@ BuildRequires:  meson >= 0.36.0
 BuildRequires:  pkgconfig(glib-2.0) >= 2.44.0
 BuildRequires:  pkgconfig(gobject-2.0) >= 2.44.0
 BuildRequires:  pkgconfig(libpeas-1.0) >= 1.20.0
-BuildRequires:  pkgconfig(libdnf) >= 0.38.0
+BuildRequires:  pkgconfig(libdnf) >= %{libdnf_version}
 BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  help2man
+
+Requires:       libdnf%{?_isa} >= %{libdnf_version}
 
 %description
 Micro DNF is a very minimal C implementation of DNF's install, upgrade,
