@@ -31,6 +31,7 @@ static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
 static gboolean opt_best = FALSE;
 static gboolean opt_nobest = FALSE;
+static gboolean opt_test = FALSE;
 static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
 static GSList *enable_disable_repos = NULL;
@@ -71,6 +72,8 @@ process_global_option (const gchar  *option_name,
         {
           if (strcmp (setopt[1], "nodocs") == 0)
             opt_nodocs = TRUE;
+          else if (strcmp (setopt[1], "test") == 0)
+            opt_test = TRUE;
           else 
             {
               local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -121,7 +124,7 @@ static const GOptionEntry global_opts[] = {
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
-    "Override a configuration option (install_weak_deps=0/1, tsflags=nodocs)", "<option>=<value>" },
+    "Override a configuration option (install_weak_deps=0/1, tsflags=nodocs/test)", "<option>=<value>" },
   { NULL }
 };
 
@@ -314,16 +317,15 @@ main (int   argc,
             goto out;
         }
 
-      /* allow downgrades for all transaction types */
+      /* set transaction flags, allow downgrades for all transaction types */
       DnfTransaction *txn = dnf_context_get_transaction (ctx);
       int flags = dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_ALLOW_DOWNGRADE;
-
       if (opt_nodocs)
-        {
-          flags |= DNF_TRANSACTION_FLAG_NODOCS;
-        }
-
+        flags |= DNF_TRANSACTION_FLAG_NODOCS;
+      if (opt_test)
+        flags |= DNF_TRANSACTION_FLAG_TEST;
       dnf_transaction_set_flags (txn, flags);
+
       if (opt_best && opt_nobest)
         {
           error = g_error_new_literal(G_OPTION_ERROR,
