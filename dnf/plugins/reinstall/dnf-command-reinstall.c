@@ -154,8 +154,9 @@ dnf_command_reinstall_run (DnfCommand      *cmd,
   if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), flags, error))
     return FALSE;
   
-  DnfTransaction *transaction = dnf_context_get_transaction(ctx);
-  dnf_transaction_set_flags(transaction, DNF_TRANSACTION_FLAG_ALLOW_REINSTALL);
+  DnfTransaction *transaction = dnf_context_get_transaction (ctx);
+  int tsflags = dnf_transaction_get_flags (transaction);
+  dnf_transaction_set_flags(transaction, tsflags | DNF_TRANSACTION_FLAG_ALLOW_REINSTALL);
 
   if (!dnf_utils_print_transaction (ctx))
     return TRUE;
