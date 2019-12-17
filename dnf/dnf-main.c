@@ -70,15 +70,20 @@ process_global_option (const gchar  *option_name,
         }
       else if (strcmp (setopt[0], "tsflags") == 0)
         {
-          if (strcmp (setopt[1], "nodocs") == 0)
-            opt_nodocs = TRUE;
-          else if (strcmp (setopt[1], "test") == 0)
-            opt_test = TRUE;
-          else 
+          g_auto(GStrv) tsflags = g_strsplit (setopt[1], ",", -1);
+          for (char **it = tsflags; *it; ++it)
             {
-              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                                        "Unknown tsflag: %s", setopt[1]);
-              ret = FALSE;
+              if (strcmp (*it, "nodocs") == 0)
+                opt_nodocs = TRUE;
+              else if (strcmp (*it, "test") == 0)
+                opt_test = TRUE;
+              else
+                {
+                  local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                                            "Unknown tsflag: %s", *it);
+                  ret = FALSE;
+                  break;
+                }
             }
         }
       else if (strcmp (setopt[0], "install_weak_deps") == 0)
