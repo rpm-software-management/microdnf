@@ -50,8 +50,10 @@ create_repolist_table (gboolean with_status)
 {
   struct libscols_table *table = scols_new_table ();
   if (isatty (1))
-    scols_table_enable_colors (table, 1);
-  scols_table_enable_maxout (table, 1);
+    {
+      scols_table_enable_colors (table, 1);
+      scols_table_enable_maxout (table, 1);
+    }
   struct libscols_column *cl = scols_table_new_column (table, "repo id", 0.4, 0);
   scols_column_set_cmpfunc(cl, scols_cmpstr_cells, NULL);
   scols_table_new_column (table, "repo name", 0.5, SCOLS_FL_TRUNC);
