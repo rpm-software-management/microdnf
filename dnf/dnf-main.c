@@ -100,6 +100,10 @@ process_global_option (const gchar  *option_name,
               ret = FALSE;
             }
         }
+      else if (strcmp (setopt[0], "reposdir") == 0)
+        {
+          dnf_context_set_repo_dir (ctx, setopt[1]);
+        }
       else
         {
           local_error = g_error_new (G_OPTION_ERROR,
@@ -129,7 +133,7 @@ static const GOptionEntry global_opts[] = {
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
-    "Override a configuration option (install_weak_deps=0/1, tsflags=nodocs/test)", "<option>=<value>" },
+    "Override a configuration option (install_weak_deps=0/1, reposdir=<path>, tsflags=nodocs/test)", "<option>=<value>" },
   { NULL }
 };
 
