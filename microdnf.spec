@@ -1,4 +1,4 @@
-%global libdnf_version 0.40.0
+%global libdnf_version 0.42.0
 
 Name:           microdnf
 Version:        3.3.0

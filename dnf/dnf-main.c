@@ -339,6 +339,10 @@ main (int   argc,
       if (opt_test)
         flags |= DNF_TRANSACTION_FLAG_TEST;
       dnf_transaction_set_flags (txn, flags);
+      
+      /* Disable calling dnf_goal_depsolve() during dnf_context_run().
+       * The calling is done with hardcoded parameters. We dont want it. */
+      dnf_transaction_set_dont_solve_goal(txn, TRUE);
 
       if (opt_best && opt_nobest)
         {
