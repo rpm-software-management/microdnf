@@ -147,7 +147,6 @@ context_new (void)
 {
   DnfContext *ctx = dnf_context_new ();
 
-  dnf_context_set_repo_dir (ctx, "/etc/yum.repos.d/");
 #define CACHEDIR "/var/cache/yum"
   dnf_context_set_cache_dir (ctx, CACHEDIR"/metadata");
   dnf_context_set_solv_dir (ctx, CACHEDIR"/solv");
