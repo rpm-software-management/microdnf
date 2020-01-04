@@ -46,7 +46,11 @@ process_global_option (const gchar  *option_name,
   DnfContext *ctx = DNF_CONTEXT (data);
 
   gboolean ret = TRUE;
-  if (g_strcmp0 (option_name, "--disablerepo") == 0)
+  if (g_strcmp0 (option_name, "--config") == 0)
+    {
+      dnf_context_set_config_file_path (value);
+    }
+  else if (g_strcmp0 (option_name, "--disablerepo") == 0)
     {
       enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("d", value, NULL));
     }
@@ -132,6 +136,7 @@ process_global_option (const gchar  *option_name,
 static const GOptionEntry global_opts[] = {
   { "assumeyes", 'y', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &opt_yes, "Does nothing, we always assume yes", NULL },
   { "best", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_best, "Try the best available package versions in transactions", NULL },
+  { "config", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Configuration file location", "<config file>" },
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
   { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
   { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
