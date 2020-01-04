@@ -3,7 +3,7 @@
  * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
  * Copyright © 2016 Colin Walters <walters@verbum.org>
  * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
- * Copyright © 2017 Jaroslav Rohel <jrohel@redhat.com>
+ * Copyright © 2017-2020 Jaroslav Rohel <jrohel@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,9 @@
 #include <libdnf/libdnf.h>
 #include "dnf-command.h"
 
+typedef enum { ARG_DEFAULT, ARG_FALSE, ARG_TRUE } BoolArgs;
+
+static BoolArgs opt_install_weak_deps = ARG_DEFAULT;
 static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
 static gboolean opt_best = FALSE;
@@ -94,9 +97,9 @@ process_global_option (const gchar  *option_name,
         {
           const char *setopt_val = setopt[1];
           if (setopt_val[0] == '1' && setopt_val[1] == '\0')
-            dnf_context_set_install_weak_deps (TRUE);
+            opt_install_weak_deps = ARG_TRUE;
           else if (setopt_val[0] == '0' && setopt_val[1] == '\0')
-            dnf_context_set_install_weak_deps (FALSE);
+            opt_install_weak_deps = ARG_FALSE;
           else
             {
               local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -348,6 +351,11 @@ main (int   argc,
       /* Disable calling dnf_goal_depsolve() during dnf_context_run().
        * The calling is done with hardcoded parameters. We dont want it. */
       dnf_transaction_set_dont_solve_goal(txn, TRUE);
+
+      if (opt_install_weak_deps == ARG_TRUE)
+        dnf_context_set_install_weak_deps (TRUE);
+      else if (opt_install_weak_deps == ARG_FALSE)
+        dnf_context_set_install_weak_deps (FALSE);
 
       if (opt_best && opt_nobest)
         {
