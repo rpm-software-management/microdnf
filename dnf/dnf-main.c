@@ -39,6 +39,7 @@ static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
 static GSList *enable_disable_repos = NULL;
 static gboolean disable_plugins_loading = FALSE;
+static gboolean enable_disable_plugin_used = FALSE;
 
 static gboolean
 process_global_option (const gchar  *option_name,
@@ -67,12 +68,14 @@ process_global_option (const gchar  *option_name,
       g_auto(GStrv) patterns = g_strsplit (value, ",", -1);
       for (char **it = patterns; *it; ++it)
         dnf_context_disable_plugins (*it);
+      enable_disable_plugin_used = TRUE;
     }
   else if (g_strcmp0 (option_name, "--enableplugin") == 0)
     {
       g_auto(GStrv) patterns = g_strsplit (value, ",", -1);
       for (char **it = patterns; *it; ++it)
         dnf_context_enable_plugins (*it);
+      enable_disable_plugin_used = TRUE;
     }
   else if (g_strcmp0 (option_name, "--releasever") == 0)
     {
@@ -338,6 +341,16 @@ main (int   argc,
     {
       if (disable_plugins_loading)
         dnf_context_set_plugins_all_disabled (disable_plugins_loading);
+
+      if (enable_disable_plugin_used && dnf_context_get_plugins_all_disabled ())
+        {
+          if (disable_plugins_loading)
+            g_print ("Loading of plugins is disabled by command line argument \"--noplugins\". "
+                     "Use of \"--enableplugin\" and \"--disableplugin\" has no meaning.\n");
+          else
+            g_print ("Loading of plugins is disabled by configuration file. "
+                     "Use of \"--enableplugin\" and \"--disableplugin\" has no meaning.\n");
+        }
 
       if (!dnf_context_setup (ctx, NULL, &error))
         goto out;
