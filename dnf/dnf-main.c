@@ -61,7 +61,7 @@ process_global_option (const gchar  *option_name,
     {
       enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("e", value, NULL));
     }
-  if (g_strcmp0 (option_name, "--disableplugin") == 0)
+  else if (g_strcmp0 (option_name, "--disableplugin") == 0)
     {
       g_auto(GStrv) patterns = g_strsplit (value, ",", -1);
       for (char **it = patterns; *it; ++it)
