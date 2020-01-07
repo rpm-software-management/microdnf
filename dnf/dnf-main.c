@@ -109,6 +109,25 @@ process_global_option (const gchar  *option_name,
                 }
             }
         }
+      else if (strcmp (setopt[0], "cachedir") == 0)
+        {
+          const char *cachedir = setopt[1];
+          if (cachedir[0] != '\0')
+            {
+              g_autofree gchar *metadatadir = g_build_path ("/", cachedir, "metadata", NULL);
+              dnf_context_set_cache_dir (ctx, metadatadir);
+              g_autofree gchar *solvdir = g_build_path ("/", cachedir, "solv", NULL);
+              dnf_context_set_solv_dir (ctx, solvdir);
+              g_autofree gchar *lockdir = g_build_path ("/", cachedir, "lock", NULL);
+              dnf_context_set_lock_dir (ctx, lockdir);
+            }
+          else
+            {
+              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                                         "Empty value in: %s", value);
+              ret = FALSE;
+            }
+        }
       else if (strcmp (setopt[0], "install_weak_deps") == 0)
         {
           const char *setopt_val = setopt[1];
@@ -166,7 +185,7 @@ static const GOptionEntry global_opts[] = {
   { "noplugins", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &disable_plugins_loading, "Disable loading of plugins", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
-    "Override a configuration option (install_weak_deps=0/1, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
+    "Override a configuration option (install_weak_deps=0/1, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
   { NULL }
 };
 
