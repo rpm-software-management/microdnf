@@ -35,6 +35,7 @@ static gboolean opt_nodocs = FALSE;
 static gboolean opt_best = FALSE;
 static gboolean opt_nobest = FALSE;
 static gboolean opt_test = FALSE;
+static gboolean opt_refresh = FALSE;
 static gboolean show_help = FALSE;
 static gboolean dl_pkgs_printed = FALSE;
 static GSList *enable_disable_repos = NULL;
@@ -208,6 +209,7 @@ static const GOptionEntry global_opts[] = {
   { "installroot", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set install root", "PATH" },
   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
   { "noplugins", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &disable_plugins_loading, "Disable loading of plugins", NULL },
+  { "refresh", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_refresh, "Set metadata as expired before running the command", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
     "Override a configuration option (install_weak_deps=0/1, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
@@ -411,6 +413,9 @@ main (int   argc,
             g_print ("Loading of plugins is disabled by configuration file. "
                      "Use of \"--enableplugin\" and \"--disableplugin\" has no meaning.\n");
         }
+
+      if (opt_refresh)
+       dnf_context_set_cache_age (ctx, 0);
 
       if (!dnf_context_setup (ctx, NULL, &error))
         goto out;
