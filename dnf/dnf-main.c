@@ -227,7 +227,13 @@ context_new (void)
   dnf_context_set_check_disk_space (ctx, FALSE);
   dnf_context_set_check_transaction (ctx, TRUE);
   dnf_context_set_keep_cache (ctx, FALSE);
-  dnf_context_set_cache_age (ctx, 0);
+
+  /* Sets a maximum cache age in seconds. It is an upper limit.
+   * The lower value between this value and "metadata_expire" value from repo/global
+   * configuration file is used.
+   * The value G_MAXUINT has a special meaning. It means that the cache never expires
+   * regardless of the settings in the configuration files. */
+  dnf_context_set_cache_age (ctx, G_MAXUINT - 1); 
 
   return ctx;
 }
