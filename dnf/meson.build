@@ -12,6 +12,15 @@ microdnf_srcs = [
   ),
   'plugins/install/dnf-command-install.c',
 
+# moduleenable
+  gnome.compile_resources(
+    'dnf-moduleenable',
+    'plugins/moduleenable/dnf-command-moduleenable.gresource.xml',
+    c_name : 'dnf_command_moduleenable',
+    source_dir : 'plugins/moduleenable',
+  ),
+  'plugins/moduleenable/dnf-command-moduleenable.c',
+
   # reinstall
   gnome.compile_resources(
     'dnf-reinstall',

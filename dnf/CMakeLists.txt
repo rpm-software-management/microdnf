@@ -5,6 +5,11 @@ glib_compile_resources (DNF_COMMAND_INSTALL plugins/install/dnf-command-install.
                         INTERNAL)
 list (APPEND DNF_COMMAND_INSTALL "plugins/install/dnf-command-install.c")
 
+glib_compile_resources (DNF_COMMAND_MODULEENABLE plugins/moduleenable/dnf-command-moduleenable.gresource.xml
+                        C_PREFIX dnf_command_moduleenable
+                        INTERNAL)
+list (APPEND DNF_COMMAND_INSTALL "plugins/moduleenable/dnf-command-moduleenable.c")
+
 glib_compile_resources (DNF_COMMAND_REINSTALL plugins/reinstall/dnf-command-reinstall.gresource.xml
                         C_PREFIX dnf_command_reinstall
                         INTERNAL)
@@ -43,7 +48,8 @@ add_executable (microdnf dnf-main.c ${DNF_SRCS}
                 ${DNF_COMMAND_UPDATE}
                 ${DNF_COMMAND_REPOLIST}
                 ${DNF_COMMAND_REPOQUERY}
-                ${DNF_COMMAND_CLEAN})
+                ${DNF_COMMAND_CLEAN}
+                ${DNF_COMMAND_MODULEENABLE})
 
 target_link_libraries (microdnf
                        ${GLIB_LIBRARIES}

@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_moduleenable
+Embedded = dnf_command_moduleenable_register_types
+Name = moduleenable
+Description = List repositories
+Authors = Jaroslav Mracek <jmracek@redhat.com>
+License = GPL-3.0+
+Copyright = Copyright (C) 2019 Red Hat, Inc.
+X-Command-Syntax = moduleenable
