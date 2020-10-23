@@ -83,8 +83,15 @@ dnf_utils_print_transaction (DnfContext *ctx)
 
   if (pkgs->len == 0)
     {
-      g_print ("Nothing to do.\n");
-      return FALSE;
+      g_autofree char * report = dnf_context_get_module_report (ctx);
+      if (report)
+        {
+          g_print ("%s\n", report);
+          return TRUE;
+        } else {
+          g_print ("Nothing to do.\n");
+          return FALSE;
+        }
     }
 
   struct libscols_line *ln;
@@ -166,6 +173,11 @@ dnf_utils_print_transaction (DnfContext *ctx)
   g_print (" %-15s %4d packages\n", "Removing:", pkgs_remove->len);
   g_print (" %-15s %4d packages\n", "Downgrading:", pkgs_downgrade->len);
 
+  g_autofree char * report = dnf_context_get_module_report (ctx);
+  if (report)
+    {
+      g_print ("%s\n", report);
+    }
   /* check for test mode */
   DnfTransaction *txn = dnf_context_get_transaction (ctx);
   if (dnf_transaction_get_flags (txn) & DNF_TRANSACTION_FLAG_TEST)
