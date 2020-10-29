@@ -83,8 +83,15 @@ dnf_utils_print_transaction (DnfContext *ctx)
 
   if (pkgs->len == 0)
     {
-      g_print ("Nothing to do.\n");
-      return FALSE;
+      g_autofree char * report = dnf_context_get_module_report (ctx);
+      if (report)
+        {
+          g_print ("%s\n", report);
+          return TRUE;
+        } else {
+          g_print ("Nothing to do.\n");
+          return FALSE;
+        }
     }
 
   struct libscols_line *ln;

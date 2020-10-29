@@ -69,13 +69,25 @@ g_auto(GStrv) pkgs = NULL;
                            "Packages are not specified");
       return FALSE;
     }
-  if (!dnf_context_enable_modules(ctx, pkgs, error)) {
-    return TRUE;
+  if (!dnf_context_module_enable (ctx, pkgs, error)) {
+    return FALSE;
+  }
+  if (!dnf_context_module_switched_check (ctx, error)) {
+    return FALSE;
+  }
+
+  if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), DNF_NONE, error)) {
+    if (g_error_matches (*error, DNF_ERROR, DNF_ERROR_NO_PACKAGES_TO_UPDATE)) {
+      g_clear_error (error);
+    } else {
+      return FALSE;
+    }
   }
   if (!dnf_utils_print_transaction (ctx))
     return TRUE;
-  if (!dnf_context_run (ctx, NULL, error))
+  if (!dnf_context_run (ctx, NULL, error)) {
     return FALSE;
+  }
   return TRUE;
 }
 
