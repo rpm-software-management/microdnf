@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_module_enable
+Embedded = dnf_command_module_enable_register_types
+Name = module_enable
+Description = Enable a module stream
+Authors = Jaroslav Rohel <jrohel@redhat.com>
+License = GPL-3.0+
+Copyright = Copyright (C) 2020 Red Hat, Inc.
+X-Command-Syntax = module enable module-spec [module-spec…]
