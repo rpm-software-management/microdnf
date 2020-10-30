@@ -305,6 +305,33 @@ new_global_opt_group (DnfContext *ctx)
   return opt_grp;
 }
 
+/*
+ * The first non-option is the command/subcommand.
+ * Get it and remove it from arguments.
+ */
+static const gchar *
+get_command (int *argc,
+             char *argv[])
+{
+  const gchar *cmd_name = NULL;
+  for (gint in = 1; in < *argc; in++)
+    {
+      if (cmd_name != NULL)
+        argv[in-1] = argv[in];
+      else if (argv[in][0] != '-')
+        cmd_name = argv[in];
+    }
+  if (cmd_name != NULL) --*argc;
+  return cmd_name;
+}
+
+static gint
+compare_strings (gconstpointer a,
+                 gconstpointer b)
+{
+  return strcmp (a, b);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -316,6 +343,7 @@ main (int   argc,
   g_autoptr(GOptionContext) opt_ctx = g_option_context_new ("COMMAND");
   g_autoptr(GOptionContext) subcmd_opt_ctx = NULL;
   g_autofree gchar *subcmd_opt_param = NULL;
+  GSList *cmds_with_subcmds = NULL;  /* list of commands with subcommands */
 
   setlocale (LC_ALL, "");
 
@@ -353,11 +381,26 @@ main (int   argc,
       if (!peas_engine_load_plugin (engine, info))
         continue;
       if (peas_engine_provides_extension (engine, info, DNF_TYPE_COMMAND))
-        /*
-         * At least 2 spaces between the command and its description are needed
-         * so that help2man formats it correctly.
-         */
-        g_string_append_printf (cmd_summary, "\n  %-16s     %s", peas_plugin_info_get_name (info), peas_plugin_info_get_description (info));
+        {
+          g_autofree gchar *command_name = g_strdup (peas_plugin_info_get_name (info));
+
+          /* Plugins with a '_' character in command name implement subcommands.
+             E.g. the "command_module_enable" plugin implements the "enable" subcommand of the "module" command. */
+          for (gchar *ptr = command_name; *ptr != '\0'; ++ptr)
+            {
+              if (*ptr == '_')
+                {
+                  *ptr = ' ';
+                  cmds_with_subcmds = g_slist_append (cmds_with_subcmds, g_strndup (command_name, ptr - command_name));
+                  break;
+                }
+            }
+          /*
+           * At least 2 spaces between the command and its description are needed
+           * so that help2man formats it correctly.
+           */
+          g_string_append_printf (cmd_summary, "\n  %-16s     %s", command_name, peas_plugin_info_get_description (info));
+        }
     }
   g_option_context_set_summary (opt_ctx, cmd_summary->str);
   g_string_free (cmd_summary, TRUE);
@@ -471,19 +514,7 @@ main (int   argc,
         }
     }
 
-  /*
-   * The first non-option is the command.
-   * Get it and remove it from arguments.
-   */
-  const gchar *cmd_name = NULL;
-  for (gint in = 1; in < argc; in++)
-    {
-      if (cmd_name != NULL)
-        argv[in-1] = argv[in];
-      else if (argv[in][0] != '-')
-        cmd_name = argv[in];
-    }
-  if (cmd_name != NULL) --argc;
+  const gchar *cmd_name = get_command (&argc, argv);
 
   g_option_context_set_help_enabled (opt_ctx, TRUE);
 
@@ -500,10 +531,25 @@ main (int   argc,
 
   PeasPluginInfo *plug = NULL;
   PeasExtension *exten = NULL;
-  if (cmd_name != NULL)
+  const gchar *subcmd_name = NULL;
+  gboolean with_subcmds = FALSE;
+
+  /* Find the plugin that implements the command cmd_name or its subcommand.
+   * Command name (cmd_name) can not contain '_' character. It is reserved for subcomands. */
+  if (cmd_name != NULL && strchr(cmd_name, '_') == NULL)
     {
+      with_subcmds = g_slist_find_custom (cmds_with_subcmds, cmd_name, compare_strings) != NULL;
       g_autofree gchar *mod_name = g_strdup_printf ("command_%s", cmd_name);
       plug = peas_engine_get_plugin_info (engine, mod_name);
+      if (plug == NULL && with_subcmds)
+        {
+          subcmd_name = get_command (&argc, argv);
+          if (subcmd_name != NULL)
+            {
+              g_autofree gchar *submod_name = g_strdup_printf ("command_%s_%s", cmd_name, subcmd_name);
+              plug = peas_engine_get_plugin_info (engine, submod_name);
+            }
+        }
       if (plug != NULL)
         exten = peas_extension_set_get_extension (cmd_exts, plug);
     }
@@ -513,10 +559,18 @@ main (int   argc,
         error = g_error_new_literal (G_IO_ERROR,
                                      G_IO_ERROR_FAILED,
                                      "No command specified");
-      else
+      else if (!with_subcmds)
         error = g_error_new (G_IO_ERROR,
                              G_IO_ERROR_FAILED,
                              "Unknown command: '%s'", cmd_name);
+      else if (subcmd_name)
+        error = g_error_new (G_IO_ERROR,
+                             G_IO_ERROR_FAILED,
+                             "Unknown subcommand: '%s'", subcmd_name);
+      else
+        error = g_error_new (G_IO_ERROR,
+                             G_IO_ERROR_FAILED,
+                             "Missing subcommand for command: '%s'", cmd_name);
 
       g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
       g_printerr ("This is microdnf, which implements subset of `dnf'.\n"
@@ -533,6 +587,8 @@ main (int   argc,
     goto out;
 
 out:
+  g_slist_free_full(cmds_with_subcmds, g_free);
+
   if (error != NULL)
     {
       const gchar *prefix = "";
