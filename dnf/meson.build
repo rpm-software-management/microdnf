@@ -65,6 +65,15 @@ microdnf_srcs = [
     source_dir : 'plugins/clean',
   ),
   'plugins/clean/dnf-command-clean.c',
+
+  # module enable
+  gnome.compile_resources(
+    'dnf-module_enable',
+    'plugins/module_enable/dnf-command-module_enable.gresource.xml',
+    c_name : 'dnf_command_module_enable',
+    source_dir : 'plugins/module_enable',
+  ),
+  'plugins/module_enable/dnf-command-module_enable.c',
 ]
 
 microdnf = executable(
