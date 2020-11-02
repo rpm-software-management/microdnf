@@ -74,6 +74,24 @@ microdnf_srcs = [
     source_dir : 'plugins/module_enable',
   ),
   'plugins/module_enable/dnf-command-module_enable.c',
+
+  # module disable
+  gnome.compile_resources(
+    'dnf-module_disable',
+    'plugins/module_disable/dnf-command-module_disable.gresource.xml',
+    c_name : 'dnf_command_module_disable',
+    source_dir : 'plugins/module_disable',
+  ),
+  'plugins/module_disable/dnf-command-module_disable.c',
+
+  # module reset
+  gnome.compile_resources(
+    'dnf-module_reset',
+    'plugins/module_reset/dnf-command-module_reset.gresource.xml',
+    c_name : 'dnf_command_module_reset',
+    source_dir : 'plugins/module_reset',
+  ),
+  'plugins/module_reset/dnf-command-module_reset.c',
 ]
 
 microdnf = executable(
