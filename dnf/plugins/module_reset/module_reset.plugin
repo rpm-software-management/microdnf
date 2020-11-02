@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_module_reset
+Embedded = dnf_command_module_reset_register_types
+Name = module_reset
+Description = Reset a module stream
+Authors = Jaroslav Mracek <jmracek@redhat.com>
+License = GPL-3.0+
+Copyright = Copyright (C) 2020 Red Hat, Inc.
+X-Command-Syntax = module reset module-spec [module-spec…]
