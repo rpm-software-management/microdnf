@@ -4,6 +4,6 @@ Embedded = dnf_command_remove_register_types
 Name = remove
 Description = Remove packages
 Authors = Igor Gnatenko <ignatenko@redhat.com>
-License = GPL-3.0+
+License = GPL-2.0+
 Copyright = Copyright © 2016 Igor Gnatenko
 X-Command-Syntax = remove PACKAGE [PACKAGE…]

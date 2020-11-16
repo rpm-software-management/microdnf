@@ -4,6 +4,6 @@ Embedded = dnf_command_clean_register_types
 Name = clean
 Description = Remove cached data
 Authors = Jaroslav Rohel <jrohel@redhat.com>
-License = GPL-3.0+
+License = GPL-2.0+
 Copyright = Copyright © 2017 Jaroslav Rohel
 X-Command-Syntax = clean all
