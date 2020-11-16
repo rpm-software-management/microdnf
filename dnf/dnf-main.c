@@ -30,6 +30,7 @@
 typedef enum { ARG_DEFAULT, ARG_FALSE, ARG_TRUE } BoolArgs;
 
 static BoolArgs opt_install_weak_deps = ARG_DEFAULT;
+static BoolArgs opt_allow_vendor_change = ARG_DEFAULT;
 static gboolean opt_yes = TRUE;
 static gboolean opt_nodocs = FALSE;
 static gboolean opt_best = FALSE;
@@ -165,6 +166,20 @@ process_global_option (const gchar  *option_name,
               ret = FALSE;
             }
         }
+      else if (strcmp (setopt[0], "allow_vendor_change") == 0)
+        {
+          const char *setopt_val = setopt[1];
+          if (setopt_val[0] == '1' && setopt_val[1] == '\0')
+            opt_allow_vendor_change = ARG_TRUE;
+          else if (setopt_val[0] == '0' && setopt_val[1] == '\0')
+            opt_allow_vendor_change = ARG_FALSE;
+          else
+            {
+              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                                         "Invalid boolean value \"%s\" in: %s", setopt[1], value);
+              ret = FALSE;
+            }
+        }
       else if (strcmp (setopt[0], "reposdir") == 0)
         {
           reposdir_used = TRUE;
@@ -212,7 +227,7 @@ static const GOptionEntry global_opts[] = {
   { "refresh", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_refresh, "Set metadata as expired before running the command", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
-    "Override a configuration option (install_weak_deps=0/1, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
+    "Override a configuration option (install_weak_deps=0/1, allow_vendor_change=0/1, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
   { NULL }
 };
 
@@ -496,6 +511,11 @@ main (int   argc,
         dnf_context_set_install_weak_deps (TRUE);
       else if (opt_install_weak_deps == ARG_FALSE)
         dnf_context_set_install_weak_deps (FALSE);
+
+      if (opt_allow_vendor_change == ARG_TRUE)
+        dnf_context_set_allow_vendor_change (TRUE);
+      else if (opt_allow_vendor_change == ARG_FALSE)
+        dnf_context_set_allow_vendor_change (FALSE);
 
       if (opt_best && opt_nobest)
         {

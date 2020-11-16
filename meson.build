@@ -32,7 +32,7 @@ gnome = import('gnome')
 glib = dependency('glib-2.0', version : '>=2.44.0')
 gobject = dependency('gobject-2.0', version : '>=2.44.0')
 libpeas = dependency('libpeas-1.0', version : '>=1.20.0')
-libdnf = dependency('libdnf', version : '>=0.55.0')
+libdnf = dependency('libdnf', version : '>=0.55.2')
 scols = dependency('smartcols')
 
 pkg_libdir = join_paths(get_option('prefix'), get_option('libdir'), 'dnf')
