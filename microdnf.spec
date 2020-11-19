@@ -19,6 +19,8 @@ BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  help2man
 
 Requires:       libdnf%{?_isa} >= %{libdnf_version}
+# Ensure DNF package manager configuration skeleton is installed
+Requires:       dnf-data
 
 %description
 Micro DNF is a very minimal C implementation of DNF's install, upgrade,
