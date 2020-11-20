@@ -132,6 +132,20 @@ process_global_option (const gchar  *option_name,
                 }
             }
         }
+      else if (strcmp (setopt[0], "module_platform_id") == 0)
+        {
+          const char *module_platform_id = setopt[1];
+          if (module_platform_id[0] != '\0')
+            {
+              dnf_context_set_platform_module (ctx, module_platform_id);
+            }
+          else
+            {
+              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                                         "Empty value in: %s", value);
+              ret = FALSE;
+            }
+        }
       else if (strcmp (setopt[0], "cachedir") == 0)
         {
           cachedir_used = TRUE;
@@ -227,7 +241,7 @@ static const GOptionEntry global_opts[] = {
   { "refresh", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_refresh, "Set metadata as expired before running the command", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
-    "Override a configuration option (install_weak_deps=0/1, allow_vendor_change=0/1, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
+    "Override a configuration option (install_weak_deps=0/1, allow_vendor_change=0/1, module_platform_id=<name:stream>, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
   { NULL }
 };
 
