@@ -19,8 +19,10 @@ BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  help2man
 
 Requires:       libdnf%{?_isa} >= %{libdnf_version}
+%if 0%{?rhel} > 8 || 0%{?fedora}
 # Ensure DNF package manager configuration skeleton is installed
 Requires:       dnf-data
+%endif
 
 %description
 Micro DNF is a lightweight C implementation of DNF, designed to be used
