@@ -1,9 +1,0 @@
-[Plugin]
-Module = command_update
-Embedded = dnf_command_update_register_types
-Name = update
-Description = Update packages
-Authors = Igor Gnatenko <ignatenko@redhat.com>
-License = GPL-3.0+
-Copyright = Copyright © 2016 Igor Gnatenko
-X-Command-Syntax = update [PACKAGE…]
