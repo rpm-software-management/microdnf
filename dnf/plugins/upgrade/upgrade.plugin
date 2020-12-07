@@ -7,3 +7,5 @@ Authors = Igor Gnatenko <ignatenko@redhat.com>
 License = GPL-2.0+
 Copyright = Copyright © 2016 Igor Gnatenko
 X-Command-Syntax = upgrade [PACKAGE…]
+X-Alias-Name = update
+X-Alias-Description = Compatibility alias for the "upgrade" command
