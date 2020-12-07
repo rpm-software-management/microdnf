@@ -30,14 +30,14 @@ microdnf_srcs = [
   ),
   'plugins/remove/dnf-command-remove.c',
 
-  # update
+  # upgrade
   gnome.compile_resources(
-    'dnf-update',
-    'plugins/update/dnf-command-update.gresource.xml',
-    c_name : 'dnf_command_update',
-    source_dir : 'plugins/update',
+    'dnf-upgrade',
+    'plugins/upgrade/dnf-command-upgrade.gresource.xml',
+    c_name : 'dnf_command_upgrade',
+    source_dir : 'plugins/upgrade',
   ),
-  'plugins/update/dnf-command-update.c',
+  'plugins/upgrade/dnf-command-upgrade.c',
 
   # repolist
   gnome.compile_resources(

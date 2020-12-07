@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_upgrade
+Embedded = dnf_command_upgrade_register_types
+Name = upgrade
+Description = Upgrade packages
+Authors = Igor Gnatenko <ignatenko@redhat.com>
+License = GPL-2.0+
+Copyright = Copyright © 2016 Igor Gnatenko
+X-Command-Syntax = upgrade [PACKAGE…]

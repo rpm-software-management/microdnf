@@ -1,4 +1,4 @@
-/* dnf-command-update.c
+/* dnf-command-upgrade.c
  *
  * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
  *
@@ -16,35 +16,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "dnf-command-update.h"
+#include "dnf-command-upgrade.h"
 #include "dnf-utils.h"
 
-struct _DnfCommandUpdate
+struct _DnfCommandUpgrade
 {
   PeasExtensionBase parent_instance;
 };
 
-static void dnf_command_update_iface_init (DnfCommandInterface *iface);
+static void dnf_command_upgrade_iface_init (DnfCommandInterface *iface);
 
-G_DEFINE_DYNAMIC_TYPE_EXTENDED (DnfCommandUpdate,
-                                dnf_command_update,
+G_DEFINE_DYNAMIC_TYPE_EXTENDED (DnfCommandUpgrade,
+                                dnf_command_upgrade,
                                 PEAS_TYPE_EXTENSION_BASE,
                                 0,
                                 G_IMPLEMENT_INTERFACE (DNF_TYPE_COMMAND,
-                                                       dnf_command_update_iface_init))
+                                                       dnf_command_upgrade_iface_init))
 
 static void
-dnf_command_update_init (DnfCommandUpdate *self)
+dnf_command_upgrade_init (DnfCommandUpgrade *self)
 {
 }
 
 static gboolean
-dnf_command_update_run (DnfCommand      *cmd,
-                        int              argc,
-                        char            *argv[],
-                        GOptionContext  *opt_ctx,
-                        DnfContext      *ctx,
-                        GError         **error)
+dnf_command_upgrade_run (DnfCommand      *cmd,
+                         int              argc,
+                         char            *argv[],
+                         GOptionContext  *opt_ctx,
+                         DnfContext      *ctx,
+                         GError         **error)
 {
   g_auto(GStrv) pkgs = NULL;
   const GOptionEntry opts[] = {
@@ -63,7 +63,7 @@ dnf_command_update_run (DnfCommand      *cmd,
     }
   else
     {
-      /* Update each package */
+      /* Upgrade each package */
       for (GStrv pkg = pkgs; *pkg != NULL; pkg++)
         {
           if (!dnf_context_update (ctx, *pkg, error))
@@ -89,27 +89,27 @@ dnf_command_update_run (DnfCommand      *cmd,
 }
 
 static void
-dnf_command_update_class_init (DnfCommandUpdateClass *klass)
+dnf_command_upgrade_class_init (DnfCommandUpgradeClass *klass)
 {
 }
 
 static void
-dnf_command_update_iface_init (DnfCommandInterface *iface)
+dnf_command_upgrade_iface_init (DnfCommandInterface *iface)
 {
-  iface->run = dnf_command_update_run;
+  iface->run = dnf_command_upgrade_run;
 }
 
 static void
-dnf_command_update_class_finalize (DnfCommandUpdateClass *klass)
+dnf_command_upgrade_class_finalize (DnfCommandUpgradeClass *klass)
 {
 }
 
 G_MODULE_EXPORT void
-dnf_command_update_register_types (PeasObjectModule *module)
+dnf_command_upgrade_register_types (PeasObjectModule *module)
 {
-  dnf_command_update_register_type (G_TYPE_MODULE (module));
+  dnf_command_upgrade_register_type (G_TYPE_MODULE (module));
 
   peas_object_module_register_extension_type (module,
                                               DNF_TYPE_COMMAND,
-                                              DNF_TYPE_COMMAND_UPDATE);
+                                              DNF_TYPE_COMMAND_UPGRADE);
 }
