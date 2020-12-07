@@ -373,6 +373,8 @@ main (int   argc,
   g_autoptr(GOptionContext) subcmd_opt_ctx = NULL;
   g_autofree gchar *subcmd_opt_param = NULL;
   GSList *cmds_with_subcmds = NULL;  /* list of commands with subcommands */
+  /* dictionary of aliases for commands */
+  g_autoptr(GHashTable) cmds_aliases = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 
   setlocale (LC_ALL, "");
 
@@ -412,6 +414,7 @@ main (int   argc,
       if (peas_engine_provides_extension (engine, info, DNF_TYPE_COMMAND))
         {
           g_autofree gchar *command_name = g_strdup (peas_plugin_info_get_name (info));
+          g_autofree gchar *command_alias_name = g_strdup (peas_plugin_info_get_external_data (info, "Alias-Name"));
 
           /* Plugins with a '_' character in command name implement subcommands.
              E.g. the "command_module_enable" plugin implements the "enable" subcommand of the "module" command. */
@@ -424,11 +427,21 @@ main (int   argc,
                   break;
                 }
             }
+
+          /* Add command alias to the dictionary. */
+          if (command_alias_name)
+              g_hash_table_insert (cmds_aliases, g_strdup (command_alias_name), g_strdup (command_name));
+
           /*
            * At least 2 spaces between the command and its description are needed
            * so that help2man formats it correctly.
            */
           g_string_append_printf (cmd_summary, "\n  %-16s     %s", command_name, peas_plugin_info_get_description (info));
+
+          /* If command has an alias with a description, add it to the help. */
+          const gchar *command_alias_description = peas_plugin_info_get_external_data (info, "Alias-Description");
+          if (command_alias_name && command_alias_description)
+            g_string_append_printf (cmd_summary, "\n  %-16s     %s", command_alias_name, command_alias_description);
         }
     }
   g_option_context_set_summary (opt_ctx, cmd_summary->str);
@@ -572,15 +585,17 @@ main (int   argc,
    * Command name (cmd_name) can not contain '_' character. It is reserved for subcomands. */
   if (cmd_name != NULL && strchr(cmd_name, '_') == NULL)
     {
-      with_subcmds = g_slist_find_custom (cmds_with_subcmds, cmd_name, compare_strings) != NULL;
-      g_autofree gchar *mod_name = g_strdup_printf ("command_%s", cmd_name);
+      const gchar *original_cmd_name = g_hash_table_lookup (cmds_aliases, cmd_name);
+      const gchar *search_cmd_name = original_cmd_name ? original_cmd_name : cmd_name;
+      with_subcmds = g_slist_find_custom (cmds_with_subcmds, search_cmd_name, compare_strings) != NULL;
+      g_autofree gchar *mod_name = g_strdup_printf ("command_%s", search_cmd_name);
       plug = peas_engine_get_plugin_info (engine, mod_name);
       if (plug == NULL && with_subcmds)
         {
           subcmd_name = get_command (&argc, argv);
           if (subcmd_name != NULL)
             {
-              g_autofree gchar *submod_name = g_strdup_printf ("command_%s_%s", cmd_name, subcmd_name);
+              g_autofree gchar *submod_name = g_strdup_printf ("command_%s_%s", search_cmd_name, subcmd_name);
               plug = peas_engine_get_plugin_info (engine, submod_name);
             }
         }
