@@ -25,5 +25,7 @@
 G_BEGIN_DECLS
 
 gboolean dnf_utils_print_transaction (DnfContext *ctx);
+gboolean dnf_utils_conf_main_get_bool_opt (const gchar *name, enum DnfConfPriority *priority);
+gboolean dnf_utils_userconfirm (void);
 
 G_END_DECLS

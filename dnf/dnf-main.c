@@ -26,12 +26,14 @@
 #include <libpeas/peas.h>
 #include <libdnf/libdnf.h>
 #include "dnf-command.h"
+#include "dnf-utils.h"
 
 typedef enum { ARG_DEFAULT, ARG_FALSE, ARG_TRUE } BoolArgs;
 
 static BoolArgs opt_install_weak_deps = ARG_DEFAULT;
 static BoolArgs opt_allow_vendor_change = ARG_DEFAULT;
-static gboolean opt_yes = TRUE;
+static gboolean opt_no = FALSE;
+static gboolean opt_yes = FALSE;
 static gboolean opt_nodocs = FALSE;
 static gboolean opt_best = FALSE;
 static gboolean opt_nobest = FALSE;
@@ -231,7 +233,8 @@ process_global_option (const gchar  *option_name,
 }
 
 static const GOptionEntry global_opts[] = {
-  { "assumeyes", 'y', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &opt_yes, "Does nothing, we always assume yes", NULL },
+  { "assumeno", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_no, "Automatically answer no for all questions", NULL },
+  { "assumeyes", 'y', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_yes, "Automatically answer yes for all questions", NULL },
   { "best", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_best, "Try the best available package versions in transactions", NULL },
   { "config", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Configuration file location", "<config file>" },
   { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
@@ -563,6 +566,24 @@ main (int   argc,
         {
           dnf_context_set_best(FALSE);
         }
+
+      if (opt_no)
+        {
+          dnf_conf_main_set_option ("assumeno", DNF_CONF_COMMANDLINE, "1", NULL);
+        }
+
+      if (opt_yes)
+        {
+          dnf_conf_main_set_option ("assumeyes", DNF_CONF_COMMANDLINE, "1", NULL);
+        }
+      else
+        {
+          enum DnfConfPriority priority;
+          dnf_utils_conf_main_get_bool_opt ("assumeyes", &priority);
+          /* microdnf has a default value for "assumeyes" equal to TRUE, backward compatibility */
+          if (priority == DNF_CONF_DEFAULT)
+            dnf_conf_main_set_option ("assumeyes", DNF_CONF_COMMANDLINE, "1", NULL);
+        }
     }
 
   const gchar *cmd_name = get_command (&argc, argv);
@@ -577,6 +598,8 @@ main (int   argc,
       g_set_prgname (prg_name);
       g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
       g_print ("%s", help);
+      g_print ("Notes:\n");
+      g_print ("  The \"--assumeyes\" option is turned on by default. To switch it to an interactive prompt, specify \"assumeyes=0\" in the configuration file.\n\n");
       goto out;
     }
 

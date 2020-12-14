@@ -87,6 +87,8 @@ dnf_command_remove_run (DnfCommand      *cmd,
   if (!dnf_goal_depsolve (dnf_context_get_goal (ctx), DNF_ERASE, error))
     return FALSE;
   dnf_utils_print_transaction (ctx);
+  if (!dnf_utils_userconfirm ())
+    return FALSE;
   if (!dnf_context_run (ctx, NULL, error))
     return FALSE;
   g_print ("Complete.\n");
