@@ -85,6 +85,10 @@ dnf_command_module_disable_run (DnfCommand      *cmd,
     {
       return TRUE;
     }
+  if (!dnf_utils_userconfirm ())
+    {
+      return FALSE;
+    }
   if (!dnf_context_run (ctx, NULL, error))
     {
       return FALSE;

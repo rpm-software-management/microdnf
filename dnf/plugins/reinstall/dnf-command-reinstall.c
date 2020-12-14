@@ -160,7 +160,8 @@ dnf_command_reinstall_run (DnfCommand      *cmd,
 
   if (!dnf_utils_print_transaction (ctx))
     return TRUE;
-
+  if (!dnf_utils_userconfirm ())
+    return FALSE;
   if (!dnf_context_run (ctx, NULL, error))
     return FALSE;
 
