@@ -3,7 +3,7 @@
  * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
  * Copyright © 2016 Colin Walters <walters@verbum.org>
  * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
- * Copyright © 2017-2020 Jaroslav Rohel <jrohel@redhat.com>
+ * Copyright © 2017-2021 Jaroslav Rohel <jrohel@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,6 +113,10 @@ process_global_option (const gchar  *option_name,
                                      G_OPTION_ERROR_BAD_VALUE,
                                      "Missing value in: %s", value);
           ret = FALSE;
+        }
+      else if (strchr (setopt[0], '.'))
+        { /* repository option, pass to libdnf */
+          ret = dnf_conf_add_setopt (setopt[0], DNF_CONF_COMMANDLINE, setopt[1], &local_error);
         }
       else if (strcmp (setopt[0], "tsflags") == 0)
         {
@@ -241,7 +245,7 @@ static const GOptionEntry global_opts[] = {
   { "refresh", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_refresh, "Set metadata as expired before running the command", NULL },
   { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
   { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
-    "Override a configuration option (install_weak_deps=0/1, allow_vendor_change=0/1, module_platform_id=<name:stream>, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
+    "Override a configuration option (install_weak_deps=0/1, allow_vendor_change=0/1, module_platform_id=<name:stream>, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,..., repo_id.option_name=<value>)", "<option>=<value>" },
   { NULL }
 };
 
