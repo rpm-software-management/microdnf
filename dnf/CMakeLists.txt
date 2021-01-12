@@ -35,6 +35,11 @@ glib_compile_resources (DNF_COMMAND_CLEAN plugins/clean/dnf-command-clean.gresou
                         INTERNAL)
 list (APPEND DNF_COMMAND_CLEAN "plugins/clean/dnf-command-clean.c")
 
+glib_compile_resources (DNF_COMMAND_DOWNLOAD plugins/download/dnf-command-download.gresource.xml
+                        C_PREFIX dnf_command_download
+                        INTERNAL)
+list (APPEND DNF_COMMAND_DOWNLOAD "plugins/download/dnf-command-download.c")
+
 glib_compile_resources (DNF_COMMAND_MODULE_ENABLE plugins/module_enable/dnf-command-module_enable.gresource.xml
                         C_PREFIX dnf_command_module_enable
                         INTERNAL)
@@ -60,6 +65,7 @@ add_executable (microdnf dnf-main.c ${DNF_SRCS}
                 ${DNF_COMMAND_REPOLIST}
                 ${DNF_COMMAND_REPOQUERY}
                 ${DNF_COMMAND_CLEAN}
+                ${DNF_COMMAND_DOWNLOAD}
                 ${DNF_COMMAND_MODULE_ENABLE}
                 ${DNF_COMMAND_MODULE_DISABLE}
                 ${DNF_COMMAND_MODULE_RESET})

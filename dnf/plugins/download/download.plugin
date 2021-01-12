@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_download
+Embedded = dnf_command_download_register_types
+Name = download
+Description = Download packages
+Authors = Daniel Hams <daniel.hams@gmail.com>
+License = GPL-2.0+
+Copyright = Copyright © 2020-2021 Daniel Hams
+X-Command-Syntax = download [--source] PACKAGE [PACKAGE…]

@@ -66,6 +66,15 @@ microdnf_srcs = [
   ),
   'plugins/clean/dnf-command-clean.c',
 
+  # download
+  gnome.compile_resources(
+    'dnf-download',
+    'plugins/download/dnf-command-download.gresource.xml',
+    c_name : 'dnf_command_download',
+    source_dir : 'plugins/download',
+  ),
+  'plugins/download/dnf-command-download.c',
+
   # module enable
   gnome.compile_resources(
     'dnf-module_enable',
