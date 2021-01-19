@@ -216,79 +216,8 @@ select_one_pkg_for_nevra (DnfRepoLoader *repo_loader, GPtrArray *pkgs)
 }
 
 static gboolean
-dnf_command_download_run (DnfCommand      *cmd,
-                          int              argc,
-                          char            *argv[],
-                          GOptionContext  *opt_ctx,
-                          DnfContext      *ctx,
-                          GError         **error)
+download_packages (DnfRepoLoader *repo_loader, GPtrArray *pkgs, DnfState *state, GError **error)
 {
-  g_auto(GStrv) opt_key = NULL;
-  gboolean opt_src = FALSE;
-  const GOptionEntry opts[] = {
-    { "source", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_src, "download source packages", NULL },
-    { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &opt_key, NULL, NULL },
-    { NULL }
-  };
-  g_option_context_add_main_entries (opt_ctx, opts, NULL);
-
-  if (!g_option_context_parse (opt_ctx, &argc, &argv, error))
-    return FALSE;
-
-  if (opt_key == NULL)
-    {
-      g_set_error_literal (error,
-                           G_IO_ERROR,
-                           G_IO_ERROR_FAILED,
-                           "Packages are not specified");
-      return FALSE;
-    }
-
-  DnfRepoLoader * repo_loader = dnf_context_get_repo_loader (ctx);
-  // If -source arg was passed, auto-enable the source repositories
-  if (opt_src && !dnf_command_download_enablesourcerepos (ctx, repo_loader, error))
-    {
-      return FALSE;
-    }
-
-  DnfState * state = dnf_context_get_state (ctx);
-  DnfContextSetupSackFlags sack_flags = DNF_CONTEXT_SETUP_SACK_FLAG_SKIP_RPMDB;
-  dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error);
-  DnfSack *sack = dnf_context_get_sack (ctx);
-
-  hy_autoquery HyQuery query = hy_query_create (sack);
-
-  if (opt_key)
-    {
-      hy_query_filter_empty (query);
-      for (char **pkey = opt_key; *pkey; ++pkey)
-        {
-          g_auto(HySubject) subject = hy_subject_create (*pkey);
-          HyNevra out_nevra;
-          hy_autoquery HyQuery key_query =
-            hy_subject_get_best_solution (subject, sack, NULL, &out_nevra,
-                                          FALSE, TRUE, TRUE, TRUE, opt_src);
-          if (out_nevra)
-            {
-              hy_nevra_free (out_nevra);
-            }
-          hy_query_filter_num (key_query, HY_PKG_LATEST_PER_ARCH_BY_PRIORITY, HY_EQ, 1);
-          hy_query_union (query, key_query);
-        }
-    }
-  if (opt_src)
-    {
-      hy_query_filter (query, HY_PKG_ARCH, HY_EQ, "src");
-    }
-
-  g_autoptr(GPtrArray) pkgs = hy_query_run (query);
-
-  if (pkgs->len == 0)
-    {
-      g_print ("No packages matched.\n");
-      return FALSE;
-    }
-
   g_autoptr(GPtrArray) pkgs_to_download = select_one_pkg_for_nevra (repo_loader, pkgs);
 
   g_ptr_array_sort (pkgs_to_download, gptrarr_dnf_package_repopkgcmp);
@@ -368,6 +297,87 @@ dnf_command_download_run (DnfCommand      *cmd,
           g_error_free (error_local);
           return FALSE;
         }
+    }
+  return TRUE;
+}
+
+static gboolean
+dnf_command_download_run (DnfCommand      *cmd,
+                          int              argc,
+                          char            *argv[],
+                          GOptionContext  *opt_ctx,
+                          DnfContext      *ctx,
+                          GError         **error)
+{
+  g_auto(GStrv) opt_key = NULL;
+  gboolean opt_src = FALSE;
+  const GOptionEntry opts[] = {
+    { "source", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_src, "download source packages", NULL },
+    { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &opt_key, NULL, NULL },
+    { NULL }
+  };
+  g_option_context_add_main_entries (opt_ctx, opts, NULL);
+
+  if (!g_option_context_parse (opt_ctx, &argc, &argv, error))
+    return FALSE;
+
+  if (opt_key == NULL)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_FAILED,
+                           "Packages are not specified");
+      return FALSE;
+    }
+
+  DnfRepoLoader * repo_loader = dnf_context_get_repo_loader (ctx);
+  // If -source arg was passed, auto-enable the source repositories
+  if (opt_src && !dnf_command_download_enablesourcerepos (ctx, repo_loader, error))
+    {
+      return FALSE;
+    }
+
+  DnfState * state = dnf_context_get_state (ctx);
+  DnfContextSetupSackFlags sack_flags = DNF_CONTEXT_SETUP_SACK_FLAG_SKIP_RPMDB;
+  dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error);
+  DnfSack *sack = dnf_context_get_sack (ctx);
+
+  hy_autoquery HyQuery query = hy_query_create (sack);
+
+  if (opt_key)
+    {
+      hy_query_filter_empty (query);
+      for (char **pkey = opt_key; *pkey; ++pkey)
+        {
+          g_auto(HySubject) subject = hy_subject_create (*pkey);
+          HyNevra out_nevra;
+          hy_autoquery HyQuery key_query =
+            hy_subject_get_best_solution (subject, sack, NULL, &out_nevra,
+                                          FALSE, TRUE, TRUE, TRUE, opt_src);
+          if (out_nevra)
+            {
+              hy_nevra_free (out_nevra);
+            }
+          hy_query_filter_num (key_query, HY_PKG_LATEST_PER_ARCH_BY_PRIORITY, HY_EQ, 1);
+          hy_query_union (query, key_query);
+        }
+    }
+  if (opt_src)
+    {
+      hy_query_filter (query, HY_PKG_ARCH, HY_EQ, "src");
+    }
+
+  g_autoptr(GPtrArray) pkgs = hy_query_run (query);
+
+  if (pkgs->len == 0)
+    {
+      g_print ("No packages matched.\n");
+      return FALSE;
+    }
+
+  if (!download_packages (repo_loader, pkgs, state, error))
+    {
+      return FALSE;
     }
 
   g_print ("Complete.\n");
