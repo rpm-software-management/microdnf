@@ -41,9 +41,12 @@ dnf_command_download_init (DnfCommandDownload *self)
 {
 }
 
-inline static gboolean str_ends_with (const gchar * buf, const gchar * val)
+inline static gboolean
+str_ends_with (const gchar * buf, const gchar * val)
 {
-  return strstr (buf, val) == (buf + (strlen (buf) - strlen (val)));
+  size_t buf_len = strlen (buf);
+  size_t val_len = strlen (val);
+  return buf_len >= val_len && memcmp (buf + buf_len - val_len, val, val_len) == 0;
 }
 
 static gboolean dnf_command_download_rewriterepotosrc (gchar * repo_buf)
