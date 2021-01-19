@@ -310,8 +310,10 @@ dnf_command_download_run (DnfCommand      *cmd,
                           GError         **error)
 {
   g_auto(GStrv) opt_key = NULL;
+  g_autofree gchar *opt_archlist = NULL;
   gboolean opt_src = FALSE;
   const GOptionEntry opts[] = {
+    { "archlist", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING, &opt_archlist, "limit the query to packages of given architectures", "ARCH,..."},
     { "source", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_src, "download source packages", NULL },
     { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &opt_key, NULL, NULL },
     { NULL }
@@ -365,6 +367,12 @@ dnf_command_download_run (DnfCommand      *cmd,
   if (opt_src)
     {
       hy_query_filter (query, HY_PKG_ARCH, HY_EQ, "src");
+    }
+
+  if (opt_archlist)
+    {
+      g_auto(GStrv) archs_array = g_strsplit_set (opt_archlist, ", ", -1);
+      hy_query_filter_in (query, HY_PKG_ARCH, HY_EQ, (const char**)archs_array);
     }
 
   g_autoptr(GPtrArray) pkgs = hy_query_run (query);
