@@ -1,6 +1,7 @@
 /* dnf-command-download.c
  *
  * Copyright © 2020-2021 Daniel Hams <daniel.hams@gmail.com>
+ * Copyright © 2021 Jaroslav Rohel <jrohel@redhat.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,6 +165,56 @@ gptrarr_dnf_package_repopkgcmp (gconstpointer a, gconstpointer b)
   return repocmp;
 }
 
+/* Compare packages by repository priority and cost */
+static gint
+dnf_package_repo_prio_cost_cmp (gconstpointer pkg1, gconstpointer pkg2, gpointer repo_loader)
+{
+  const gchar *pkg1_reponame = dnf_package_get_reponame ((DnfPackage*)pkg1);
+  const gchar *pkg2_reponame = dnf_package_get_reponame ((DnfPackage*)pkg2);
+  if (strcmp (pkg1_reponame, pkg2_reponame) == 0)
+    return 0;
+
+  DnfRepo *pkg1_repo = dnf_repo_loader_get_repo_by_id (repo_loader, pkg1_reponame, NULL);
+  DnfRepo *pkg2_repo = dnf_repo_loader_get_repo_by_id (repo_loader, pkg2_reponame, NULL);
+
+  // A higher value means a lower repository priority.
+  int result = (pkg2_repo ? hy_repo_get_priority (dnf_repo_get_repo (pkg2_repo)) : INT_MAX) -
+               (pkg1_repo ? hy_repo_get_priority (dnf_repo_get_repo (pkg1_repo)) : INT_MAX);
+
+  if (result == 0)
+    result = (pkg1_repo ? hy_repo_get_cost (dnf_repo_get_repo (pkg1_repo)) : INT_MAX) -
+             (pkg2_repo ? hy_repo_get_cost (dnf_repo_get_repo (pkg2_repo)) : INT_MAX);
+
+  return result;
+}
+
+/* The "pkgs" array can contain multiple packages with the same NEVRA.
+ * The function selects one (from the cheapest repository with the highest priority) package for each NEVRA. */
+static GPtrArray *
+select_one_pkg_for_nevra (DnfRepoLoader *repo_loader, GPtrArray *pkgs)
+{
+  g_autoptr(GHashTable) nevra2pkgs = g_hash_table_new (g_str_hash, g_str_equal);
+  for (guint i = 0 ; i < pkgs->len; ++i)
+    {
+      DnfPackage *pkg = g_ptr_array_index (pkgs, i);
+      const gchar *pkg_nevra = dnf_package_get_nevra (pkg);
+      g_hash_table_insert (nevra2pkgs, (gpointer)pkg_nevra, g_slist_prepend (g_hash_table_lookup (nevra2pkgs, pkg_nevra), pkg));
+    }
+
+  g_autoptr(GPtrArray) pkgs_to_download = g_ptr_array_sized_new (g_hash_table_size (nevra2pkgs));
+  GHashTableIter iter;
+  GSList *pkgs_list;
+  g_hash_table_iter_init (&iter, nevra2pkgs);
+  while (g_hash_table_iter_next (&iter, NULL, (gpointer)&pkgs_list))
+    {
+      pkgs_list = g_slist_sort_with_data (pkgs_list, dnf_package_repo_prio_cost_cmp, repo_loader);
+      g_ptr_array_add (pkgs_to_download, pkgs_list->data);
+      g_slist_free (pkgs_list);
+    }
+
+  return g_steal_pointer (&pkgs_to_download);
+}
+
 static gboolean
 dnf_command_download_run (DnfCommand      *cmd,
                           int              argc,
@@ -238,14 +289,16 @@ dnf_command_download_run (DnfCommand      *cmd,
       return FALSE;
     }
 
-  g_ptr_array_sort (pkgs, gptrarr_dnf_package_repopkgcmp);
+  g_autoptr(GPtrArray) pkgs_to_download = select_one_pkg_for_nevra (repo_loader, pkgs);
+
+  g_ptr_array_sort (pkgs_to_download, gptrarr_dnf_package_repopkgcmp);
   rpmKeyring keyring = rpmKeyringNew ();
   GError *error_local = NULL;
   gchar prev_repo[MAXPATHLEN];
   prev_repo[0] = '\0';
-  for (guint i = 0 ; i < pkgs->len; ++i)
+  for (guint i = 0 ; i < pkgs_to_download->len; ++i)
     {
-      DnfPackage * pkg = g_ptr_array_index (pkgs, i);
+      DnfPackage * pkg = g_ptr_array_index (pkgs_to_download, i);
       const gchar * pkg_nevra = dnf_package_get_nevra (pkg);
 
       const gchar * reponame = dnf_package_get_reponame (pkg);
