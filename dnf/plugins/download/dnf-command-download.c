@@ -321,6 +321,7 @@ get_packages_query (DnfContext *ctx, GStrv pkgs_spec, gboolean opt_src, const gc
             {
               hy_nevra_free (out_nevra);
             }
+          hy_query_filter (key_query, HY_PKG_REPONAME, HY_NEQ, HY_SYSTEM_REPO_NAME);
           hy_query_filter_num (key_query, HY_PKG_LATEST_PER_ARCH_BY_PRIORITY, HY_EQ, 1);
           hy_query_union (query, key_query);
         }
@@ -339,6 +340,35 @@ get_packages_query (DnfContext *ctx, GStrv pkgs_spec, gboolean opt_src, const gc
   return g_steal_pointer (&query);
 }
 
+static GPtrArray *
+get_packages_deps (DnfContext *ctx, GPtrArray *packages, GError **error)
+{
+  DnfSack *sack = dnf_context_get_sack (ctx);
+
+  g_autoptr(GPtrArray) deps = g_ptr_array_new_with_free_func ((GDestroyNotify)g_object_unref);
+
+  for (guint i = 0; i < packages->len; ++i)
+    {
+      DnfPackage * pkg = g_ptr_array_index (packages, i);
+      HyGoal goal = hy_goal_create (sack);
+      hy_goal_install (goal, pkg);
+      if (hy_goal_run_flags (goal, DNF_NONE) == 0)
+        {
+          g_ptr_array_extend_and_steal (deps, hy_goal_list_installs (goal, NULL));
+          g_ptr_array_extend_and_steal (deps, hy_goal_list_upgrades (goal, NULL));
+        }
+      else
+        {
+          g_set_error_literal (error, DNF_ERROR, DNF_ERROR_NO_SOLUTION, "Error in resolve of packages");
+          hy_goal_free (goal);
+          return NULL;
+        }
+      hy_goal_free (goal);
+    }
+
+  return g_steal_pointer (&deps);
+}
+
 static gboolean
 dnf_command_download_run (DnfCommand      *cmd,
                           int              argc,
@@ -350,8 +380,12 @@ dnf_command_download_run (DnfCommand      *cmd,
   g_auto(GStrv) opt_key = NULL;
   g_autofree gchar *opt_archlist = NULL;
   gboolean opt_src = FALSE;
+  gboolean opt_resolve = FALSE;
+  gboolean opt_alldeps = FALSE;
   const GOptionEntry opts[] = {
     { "archlist", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING, &opt_archlist, "limit the query to packages of given architectures", "ARCH,..."},
+    { "resolve", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_resolve, "resolve and download needed dependencies", NULL },
+    { "alldeps", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_alldeps, "when running with --resolve, download all dependencies (do not exclude already installed ones)", NULL },
     { "source", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_src, "download source packages", NULL },
     { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &opt_key, NULL, NULL },
     { NULL }
@@ -378,9 +412,9 @@ dnf_command_download_run (DnfCommand      *cmd,
     }
 
   DnfState * state = dnf_context_get_state (ctx);
-  DnfContextSetupSackFlags sack_flags = DNF_CONTEXT_SETUP_SACK_FLAG_SKIP_RPMDB;
+  DnfContextSetupSackFlags sack_flags = !opt_resolve || opt_alldeps ? DNF_CONTEXT_SETUP_SACK_FLAG_SKIP_RPMDB
+                                                                    : DNF_CONTEXT_SETUP_SACK_FLAG_NONE;
   dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error);
-  DnfSack *sack = dnf_context_get_sack (ctx);
 
   hy_autoquery HyQuery query = get_packages_query (ctx, opt_key, opt_src, opt_archlist);
 
@@ -390,6 +424,16 @@ dnf_command_download_run (DnfCommand      *cmd,
     {
       g_print ("No packages matched.\n");
       return FALSE;
+    }
+
+  if (opt_resolve)
+    {
+      GPtrArray *deps = get_packages_deps (ctx, pkgs, error);
+      if (!deps)
+        {
+          return FALSE;
+        }
+      g_ptr_array_extend_and_steal (pkgs, deps);
     }
 
   if (!download_packages (repo_loader, pkgs, state, error))
