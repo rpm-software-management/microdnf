@@ -50,6 +50,21 @@ str_ends_with (const gchar * buf, const gchar * val)
   return buf_len >= val_len && memcmp (buf + buf_len - val_len, val, val_len) == 0;
 }
 
+/* Implements the functionality of the "g_ptr_array_extend_and_steal" function.
+ * The function was added to glib in version 2.62. We don't want to require a newer glib. */
+static void
+ptr_array_extend_and_steal (GPtrArray *array_to_extend, GPtrArray *array)
+{
+  guint origin_len = array_to_extend->len;
+  g_ptr_array_set_size (array_to_extend, origin_len + array->len);
+  for (guint i = 0; i < array->len; ++i)
+    {
+      g_ptr_array_index (array_to_extend, origin_len + i) = g_ptr_array_index (array, i);
+    }
+  array->len = 0;
+  g_ptr_array_unref (array);
+}
+
 static gboolean dnf_command_download_rewriterepotosrc (gchar * repo_buf)
 {
   if (str_ends_with (repo_buf, "-rpms"))
@@ -354,8 +369,8 @@ get_packages_deps (DnfContext *ctx, GPtrArray *packages, GError **error)
       hy_goal_install (goal, pkg);
       if (hy_goal_run_flags (goal, DNF_NONE) == 0)
         {
-          g_ptr_array_extend_and_steal (deps, hy_goal_list_installs (goal, NULL));
-          g_ptr_array_extend_and_steal (deps, hy_goal_list_upgrades (goal, NULL));
+          ptr_array_extend_and_steal (deps, hy_goal_list_installs (goal, NULL));
+          ptr_array_extend_and_steal (deps, hy_goal_list_upgrades (goal, NULL));
         }
       else
         {
@@ -433,7 +448,7 @@ dnf_command_download_run (DnfCommand      *cmd,
         {
           return FALSE;
         }
-      g_ptr_array_extend_and_steal (pkgs, deps);
+      ptr_array_extend_and_steal (pkgs, deps);
     }
 
   if (!download_packages (repo_loader, pkgs, state, error))
