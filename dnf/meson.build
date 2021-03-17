@@ -75,6 +75,15 @@ microdnf_srcs = [
   ),
   'plugins/download/dnf-command-download.c',
 
+  # makecache
+  gnome.compile_resources(
+    'dnf-makecache',
+    'plugins/makecache/dnf-command-makecache.gresource.xml',
+    c_name : 'dnf_command_makecache',
+    source_dir : 'plugins/makecache',
+  ),
+  'plugins/makecache/dnf-command-makecache.c',
+
   # module enable
   gnome.compile_resources(
     'dnf-module_enable',
