@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_makecache
+Embedded = dnf_command_makecache_register_types
+Name = makecache
+Description = Generate the metadata cache
+Authors = Jaroslav Rohel <jrohel@redhat.com>
+License = GPL-2.0+
+Copyright = Copyright (C) 2021 Red Hat, Inc.
+X-Command-Syntax = makecache
