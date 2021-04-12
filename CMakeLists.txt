@@ -18,7 +18,7 @@ find_package (PkgConfig REQUIRED)
 pkg_check_modules (GLIB REQUIRED glib-2.0>=2.44.0)
 pkg_check_modules (GOBJECT REQUIRED gobject-2.0>=2.44.0)
 pkg_check_modules (PEAS REQUIRED libpeas-1.0>=1.20.0)
-pkg_check_modules (LIBDNF REQUIRED libdnf>=0.56.0)
+pkg_check_modules (LIBDNF REQUIRED libdnf>=0.62.0)
 pkg_check_modules (SCOLS REQUIRED smartcols)
 
 set (PKG_LIBDIR ${CMAKE_INSTALL_FULL_LIBDIR}/dnf)
