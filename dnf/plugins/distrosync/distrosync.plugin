@@ -7,5 +7,5 @@ Authors = Neal Gompa <ngompa13@gmail.com>
 License = GPL-2.0+
 Copyright = Copyright © 2021 Neal Gompa
 X-Command-Syntax = distro-sync [PACKAGE…]
-X-Alias-Name = distribution-synchronization
+X-Alias-Name = dsync
 X-Alias-Description = Compatibility alias for the "distro-sync" command

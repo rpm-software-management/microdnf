@@ -40,11 +40,11 @@ dnf_command_distrosync_init (DnfCommandDistroSync *self)
 
 static gboolean
 dnf_command_distrosync_run (DnfCommand      *cmd,
-                         int              argc,
-                         char            *argv[],
-                         GOptionContext  *opt_ctx,
-                         DnfContext      *ctx,
-                         GError         **error)
+                            int              argc,
+                            char            *argv[],
+                            GOptionContext  *opt_ctx,
+                            DnfContext      *ctx,
+                            GError         **error)
 {
   g_auto(GStrv) pkgs = NULL;
   const GOptionEntry opts[] = {

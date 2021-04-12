@@ -46,7 +46,7 @@ microdnf_srcs = [
     c_name : 'dnf_command_distrosync',
     source_dir : 'plugins/distrosync',
   ),
-  'plugins/upgrade/dnf-command-distrosync.c',
+  'plugins/distrosync/dnf-command-distrosync.c',
 
   # repolist
   gnome.compile_resources(
