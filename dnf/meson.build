@@ -39,6 +39,15 @@ microdnf_srcs = [
   ),
   'plugins/upgrade/dnf-command-upgrade.c',
 
+  # distro-sync
+  gnome.compile_resources(
+    'dnf-distrosync',
+    'plugins/distrosync/dnf-command-distrosync.gresource.xml',
+    c_name : 'dnf_command_distrosync',
+    source_dir : 'plugins/distrosync',
+  ),
+  'plugins/upgrade/dnf-command-distrosync.c',
+
   # repolist
   gnome.compile_resources(
     'dnf-repolist',

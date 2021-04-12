@@ -20,6 +20,11 @@ glib_compile_resources (DNF_COMMAND_UPGRADE plugins/upgrade/dnf-command-upgrade.
                         INTERNAL)
 list (APPEND DNF_COMMAND_UPGRADE "plugins/upgrade/dnf-command-upgrade.c")
 
+glib_compile_resources (DNF_COMMAND_DISTROSYNC plugins/distrosync/dnf-command-distrosync.gresource.xml
+                        C_PREFIX dnf_command_distrosync
+                        INTERNAL)
+list (APPEND DNF_COMMAND_DISTROSYNC "plugins/distrosync/dnf-command-distrosync.c")
+
 glib_compile_resources (DNF_COMMAND_REPOLIST plugins/repolist/dnf-command-repolist.gresource.xml
                         C_PREFIX dnf_command_repolist
                         INTERNAL)
@@ -67,6 +72,7 @@ add_executable (microdnf dnf-main.c ${DNF_SRCS}
                 ${DNF_COMMAND_REINSTALL}
                 ${DNF_COMMAND_REMOVE}
                 ${DNF_COMMAND_UPGRADE}
+                ${DNF_COMMAND_DISTROSYNC}
                 ${DNF_COMMAND_REPOLIST}
                 ${DNF_COMMAND_REPOQUERY}
                 ${DNF_COMMAND_CLEAN}
