@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8.5)
 project (microdnf C)
-set (PROJECT_VERSION 3.7.1)
+set (PROJECT_VERSION 3.8.0)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
