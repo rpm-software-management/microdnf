@@ -595,6 +595,14 @@ main (int   argc,
         {
           dnf_conf_main_set_option ("assumeyes", DNF_CONF_COMMANDLINE, "1", NULL);
         }
+      else
+        {
+          enum DnfConfPriority priority;
+          dnf_utils_conf_main_get_bool_opt ("assumeyes", &priority);
+          /* microdnf has a default value for "assumeyes" equal to TRUE, backward compatibility */
+          if (priority == DNF_CONF_DEFAULT)
+            dnf_conf_main_set_option ("assumeyes", DNF_CONF_COMMANDLINE, "1", NULL);
+        }
     }
 
   const gchar *cmd_name = get_command (&argc, argv);
@@ -609,6 +617,8 @@ main (int   argc,
       g_set_prgname (prg_name);
       g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
       g_print ("%s", help);
+      g_print ("Notes:\n");
+      g_print ("  The \"--assumeyes\" option is turned on by default. To switch it to an interactive prompt, specify \"assumeyes=0\" in the configuration file.\n\n");
       goto out;
     }
 
