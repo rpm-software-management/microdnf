@@ -7,7 +7,7 @@ Summary:        Lightweight implementation of DNF in C
 
 License:        GPLv2+
 URL:            https://github.com/rpm-software-management/microdnf
-Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
+Source0:        %{url}/archive/%{version}.tar.gz?/%{name}-%{version}.tar.gz
 
 BuildRequires:  gcc
 BuildRequires:  meson >= 0.36.0
