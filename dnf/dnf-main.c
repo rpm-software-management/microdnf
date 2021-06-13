@@ -272,7 +272,7 @@ context_new (void)
 {
   DnfContext *ctx = dnf_context_new ();
 
-#define CACHEDIR "/var/cache/yum"
+#define CACHEDIR "/var/cache/microdnf"
   dnf_context_set_cache_dir (ctx, CACHEDIR"/metadata");
   dnf_context_set_solv_dir (ctx, CACHEDIR"/solv");
   dnf_context_set_lock_dir (ctx, CACHEDIR"/lock");

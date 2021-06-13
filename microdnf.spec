@@ -42,6 +42,7 @@ minimal environment possible so you can build up to exactly what you need.
 
 %install
 %meson_install
+mkdir -p %{buildroot}/var/cache/microdnf
 
 %check
 %meson_test
@@ -51,5 +52,6 @@ minimal environment possible so you can build up to exactly what you need.
 %doc README.md
 %{_mandir}/man8/microdnf.8*
 %{_bindir}/%{name}
+%dir /var/cache/microdnf
 
 %changelog
