@@ -52,7 +52,9 @@ dnf_utils_add_transaction_packages (DnfContext *ctx,
       scols_line_set_data (ln, COL_NEVRA, dnf_package_get_nevra (pkg));
       scols_line_set_data (ln, COL_REPO, dnf_package_get_reponame (pkg));
       g_autofree gchar *formatted_pkg_size = g_format_size (dnf_package_get_size (pkg));
-      scols_line_set_data (ln, COL_SIZE, formatted_pkg_size);
+      g_auto(GStrv) formatted_pkg_size_parts = g_strsplit (formatted_pkg_size, "\xC2\xA0", -1);
+      g_autofree gchar *formatted_pkg_size_simple_spaces = g_strjoinv (" ", formatted_pkg_size_parts);
+      scols_line_set_data (ln, COL_SIZE, formatted_pkg_size_simple_spaces);
 
       if (dnf_package_get_action (pkg) != DNF_STATE_ACTION_REMOVE)
         {
