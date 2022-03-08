@@ -1,7 +1,7 @@
 %global libdnf_version 0.62.0
 
 Name:           microdnf
-Version:        3.8.0
+Version:        3.8.1
 Release:        1%{?dist}
 Summary:        Lightweight implementation of DNF in C
 
