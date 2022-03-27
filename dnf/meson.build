@@ -39,6 +39,15 @@ microdnf_srcs = [
   ),
   'plugins/upgrade/dnf-command-upgrade.c',
 
+  # swap
+  gnome.compile_resources(
+    'dnf-swap',
+    'plugins/swap/dnf-command-swap.gresource.xml',
+    c_name : 'dnf_command_swap',
+    source_dir : 'plugins/swap',
+  ),
+  'plugins/swap/dnf-command-swap.c',
+
   # distro-sync
   gnome.compile_resources(
     'dnf-distrosync',
