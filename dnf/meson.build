@@ -122,7 +122,7 @@ microdnf_srcs = [
 ]
 
 microdnf = executable(
-  'microdnf',
+  'microdnf-deprecated',
   sources : microdnf_srcs,
   dependencies : [
     glib,

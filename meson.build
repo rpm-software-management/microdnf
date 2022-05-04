@@ -1,4 +1,4 @@
-project('microdnf', 'c',
+project('microdnf-deprecated', 'c',
         version : '3.8.1',
         license : 'GPL-2.0+',
         default_options : [

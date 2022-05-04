@@ -1,6 +1,6 @@
 %global libdnf_version 0.62.0
 
-Name:           microdnf
+Name:           microdnf-deprecated
 Version:        3.8.1
 Release:        1%{?dist}
 Summary:        Lightweight implementation of DNF in C
@@ -46,10 +46,11 @@ minimal environment possible so you can build up to exactly what you need.
 %check
 %meson_test
 
+
 %files
 %license COPYING
 %doc README.md
-%{_mandir}/man8/microdnf.8*
+%exclude %{_mandir}/man8/microdnf.8*
 %{_bindir}/%{name}
 
 %changelog
