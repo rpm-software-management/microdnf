@@ -1,7 +1,7 @@
 %global libdnf_version 0.62.0
 
 Name:           microdnf-deprecated
-Version:        3.8.1
+Version:        4.8.1
 Release:        1%{?dist}
 Summary:        Lightweight implementation of DNF in C
 
@@ -23,6 +23,11 @@ Requires:       libdnf%{?_isa} >= %{libdnf_version}
 # Ensure DNF package manager configuration skeleton is installed
 Requires:       dnf-data
 %endif
+
+# To provide alternative symlink to microdnf
+Requires(post): /usr/sbin/alternatives
+Requires(preun): /usr/sbin/alternatives
+Conflicts:      microdnf < 4.0.0
 
 %description
 Micro DNF is a lightweight C implementation of DNF, designed to be used
@@ -46,11 +51,19 @@ minimal environment possible so you can build up to exactly what you need.
 %check
 %meson_test
 
+%post
+/usr/sbin/alternatives --install "%{_bindir}/microdnf" microdnf "%{_bindir}/microdnf-deprecated" 1
+
+%preun
+if [ $1 = 0 ]; then
+/usr/sbin/alternatives --remove microdnf "%{_bindir}/microdnf-deprecated"
+fi
 
 %files
 %license COPYING
 %doc README.md
 %exclude %{_mandir}/man8/microdnf.8*
 %{_bindir}/%{name}
+%ghost %{_bindir}/microdnf
 
 %changelog
