@@ -1,0 +1,9 @@
+[Plugin]
+Module = command_leaves
+Embedded = dnf_command_leaves_register_types
+Name = leaves
+Description = List installed packages not required by other installed packages
+Authors = Emil Renner Berthing <esmil@mailme.dk>
+License = GPL-2.0+
+Copyright = Copyright (C) 2022 Emil Renner Berthing
+X-Command-Syntax = leaves

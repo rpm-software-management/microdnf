@@ -35,6 +35,11 @@ glib_compile_resources (DNF_COMMAND_REPOQUERY plugins/repoquery/dnf-command-repo
                         INTERNAL)
 list (APPEND DNF_COMMAND_REPOQUERY "plugins/repoquery/dnf-command-repoquery.c")
 
+glib_compile_resources (DNF_COMMAND_LEAVES plugins/leaves/dnf-command-leaves.gresource.xml
+                        C_PREFIX dnf_command_leaves
+                        INTERNAL)
+list (APPEND DNF_COMMAND_LEAVES "plugins/leaves/dnf-command-leaves.c")
+
 glib_compile_resources (DNF_COMMAND_CLEAN plugins/clean/dnf-command-clean.gresource.xml
                         C_PREFIX dnf_command_clean
                         INTERNAL)
@@ -75,6 +80,7 @@ add_executable (microdnf dnf-main.c ${DNF_SRCS}
                 ${DNF_COMMAND_DISTROSYNC}
                 ${DNF_COMMAND_REPOLIST}
                 ${DNF_COMMAND_REPOQUERY}
+                ${DNF_COMMAND_LEAVES}
                 ${DNF_COMMAND_CLEAN}
                 ${DNF_COMMAND_DOWNLOAD}
                 ${DNF_COMMAND_MAKECACHE}
