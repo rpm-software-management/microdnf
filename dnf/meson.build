@@ -66,6 +66,15 @@ microdnf_srcs = [
   ),
   'plugins/repoquery/dnf-command-repoquery.c',
 
+  # leaves
+  gnome.compile_resources(
+    'dnf-leaves',
+    'plugins/leaves/dnf-command-leaves.gresource.xml',
+    c_name : 'dnf_command_leaves',
+    source_dir : 'plugins/leaves',
+  ),
+  'plugins/leaves/dnf-command-leaves.c',
+
   # clean
   gnome.compile_resources(
     'dnf-clean',
