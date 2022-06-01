@@ -80,35 +80,8 @@ gtree_dnf_package_cmp (gconstpointer a, gconstpointer b)
   return dnf_package_cmp ((DnfPackage *)a, (DnfPackage *)b);
 }
 
-static void
-add_edges (GHashTable *edges, HyQuery query, GTree *pkg2idx, DnfReldepList *deps)
-{
-  const gint ndeps = dnf_reldep_list_count (deps);
-
-  // resolve dependencies and add an edge if there is exactly one package satisfying it
-  for (gint j = 0; j < ndeps; j++)
-    {
-      DnfReldep *dep = dnf_reldep_list_index (deps, j);
-
-      hy_query_filter_reldep (query, HY_PKG_PROVIDES, dep);
-      g_autoptr(GPtrArray) ppkgs = hy_query_run (query);
-      hy_query_clear (query);
-      dnf_reldep_free (dep);
-
-      if (ppkgs->len != 1)
-        continue;
-
-      const DnfPackage *ppkg = g_ptr_array_index (ppkgs, 0);
-      GTreeNode *node = g_tree_lookup_node (pkg2idx, ppkg);;
-      g_assert (node);
-      g_hash_table_insert (edges, g_tree_node_value (node), NULL);
-    }
-
-  dnf_reldep_list_free (deps);
-}
-
 static GPtrArray *
-build_graph (HyQuery query, const GPtrArray *pkgs, gboolean recommends)
+build_graph (HyQuery query, const GPtrArray *pkgs)
 {
   // create pkg2idx to map DnfPackages to their index in pkgs
   g_autoptr(GTree) pkg2idx = g_tree_new (gtree_dnf_package_cmp);
@@ -121,13 +94,34 @@ build_graph (HyQuery query, const GPtrArray *pkgs, gboolean recommends)
   GPtrArray *graph = g_ptr_array_new_full (pkgs->len, g_free);
   g_autoptr(GHashTable) edges = g_hash_table_new (g_direct_hash, g_direct_equal);
 
+  // for each package resolve its dependencies and add an edge if there is
+  // exactly one package satisfying it
   for (guint i = 0; i < pkgs->len; i++)
     {
       DnfPackage *pkg = g_ptr_array_index (pkgs, i);
-      add_edges (edges, query, pkg2idx, dnf_package_get_requires (pkg));
-      if (recommends)
-        add_edges (edges, query, pkg2idx, dnf_package_get_recommends (pkg));
-      g_hash_table_remove (edges, GUINT_TO_POINTER (i)); // remove self-edges
+      g_autoptr(DnfReldepList) reqs = dnf_package_get_requires (pkg);
+
+      const gint nreqs = dnf_reldep_list_count (reqs);
+      for (gint j = 0; j < nreqs; j++)
+        {
+          DnfReldep *req = dnf_reldep_list_index (reqs, j);
+
+          hy_query_filter_reldep (query, HY_PKG_PROVIDES, req);
+          g_autoptr(GPtrArray) ppkgs = hy_query_run (query);
+          hy_query_clear (query);
+          dnf_reldep_free (req);
+
+          if (ppkgs->len != 1)
+            continue;
+
+          DnfPackage *ppkg = g_ptr_array_index (ppkgs, 0);
+          GTreeNode *node = g_tree_lookup_node (pkg2idx, ppkg);;
+          g_assert (node);
+          guint idx = GPOINTER_TO_UINT (g_tree_node_value (node));
+          if (idx != i) // don't add self-edges
+            g_hash_table_insert (edges, GUINT_TO_POINTER (idx), NULL);
+        }
+
       g_ptr_array_add (graph, idx_array_from_set (edges));
     }
 
@@ -341,7 +335,7 @@ dnf_command_leaves_run (DnfCommand      *cmd,
   g_ptr_array_sort (pkgs, gptrarr_dnf_package_cmp);
 
   // build the directed graph of dependencies
-  g_autoptr(GPtrArray) graph = build_graph (query, pkgs, dnf_context_get_install_weak_deps ());
+  g_autoptr(GPtrArray) graph = build_graph (query, pkgs);
 
   // run Kosaraju's algorithm to find strongly connected components
   // withhout any incoming edges
