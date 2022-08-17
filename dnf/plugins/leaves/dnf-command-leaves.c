@@ -327,10 +327,13 @@ dnf_command_leaves_run (DnfCommand      *cmd,
 
   // only look at installed packages
   disable_available_repos (ctx);
-  dnf_context_setup_sack_with_flags (ctx,
-                                     dnf_context_get_state (ctx),
-                                     DNF_CONTEXT_SETUP_SACK_FLAG_NONE,
-                                     error);
+  if (!dnf_context_setup_sack_with_flags (ctx,
+                                          dnf_context_get_state (ctx),
+                                          DNF_CONTEXT_SETUP_SACK_FLAG_NONE,
+                                          error)) {
+
+      return FALSE;
+  }
 
   // get a sorted array of all installed packages
   hy_autoquery HyQuery query = hy_query_create (dnf_context_get_sack (ctx));

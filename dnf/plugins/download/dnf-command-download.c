@@ -429,7 +429,9 @@ dnf_command_download_run (DnfCommand      *cmd,
   DnfState * state = dnf_context_get_state (ctx);
   DnfContextSetupSackFlags sack_flags = !opt_resolve || opt_alldeps ? DNF_CONTEXT_SETUP_SACK_FLAG_SKIP_RPMDB
                                                                     : DNF_CONTEXT_SETUP_SACK_FLAG_NONE;
-  dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error);
+  if (!dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error)) {
+      return FALSE;
+  }
 
   hy_autoquery HyQuery query = get_packages_query (ctx, opt_key, opt_src, opt_archlist);
 

@@ -141,7 +141,9 @@ dnf_command_repoquery_run (DnfCommand     *cmd,
   DnfState * state = dnf_context_get_state (ctx);
   DnfContextSetupSackFlags sack_flags = opt_available ? DNF_CONTEXT_SETUP_SACK_FLAG_SKIP_RPMDB
                                                       : DNF_CONTEXT_SETUP_SACK_FLAG_NONE;
-  dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error);
+  if (!dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error)) {
+      return FALSE;
+  }
   DnfSack *sack = dnf_context_get_sack (ctx);
 
   hy_autoquery HyQuery query = hy_query_create (sack);
