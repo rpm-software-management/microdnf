@@ -140,7 +140,9 @@ dnf_command_reinstall_run (DnfCommand      *cmd,
     }
 
   DnfState * state = dnf_context_get_state (ctx);
-  dnf_context_setup_sack_with_flags (ctx, state, DNF_CONTEXT_SETUP_SACK_FLAG_NONE, error);
+  if (!dnf_context_setup_sack_with_flags (ctx, state, DNF_CONTEXT_SETUP_SACK_FLAG_NONE, error)) {
+      return FALSE;
+  }
 
   for (GStrv pkg = pkgs; *pkg != NULL; pkg++)
     {

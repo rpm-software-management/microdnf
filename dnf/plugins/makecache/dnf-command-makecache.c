@@ -61,7 +61,9 @@ dnf_command_makecache_run (DnfCommand      *cmd,
 
   DnfState * state = dnf_context_get_state (ctx);
   DnfContextSetupSackFlags sack_flags = DNF_CONTEXT_SETUP_SACK_FLAG_SKIP_RPMDB;
-  dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error);
+  if (!dnf_context_setup_sack_with_flags (ctx, state, sack_flags, error)) {
+      return FALSE;
+  }
 
   g_print ("Metadata cache created.\n");
 
