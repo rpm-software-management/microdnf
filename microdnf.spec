@@ -5,7 +5,7 @@ Version:        3.9.1
 Release:        1%{?dist}
 Summary:        Lightweight implementation of DNF in C
 
-License:        GPLv2+
+License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/microdnf
 Source0:        %{url}/archive/%{version}/%{name}-%{version}.tar.gz
 
