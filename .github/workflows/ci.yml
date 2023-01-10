@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: rpm-software-management/ci-dnf-stack
+          ref: dnf-4-stack
 
       - name: Setup CI
         id: setup-ci
@@ -48,6 +49,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: rpm-software-management/ci-dnf-stack
+          ref: dnf-4-stack
 
       - name: Run Integration Tests
         uses: ./.github/actions/integration-tests
