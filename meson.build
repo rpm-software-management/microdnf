@@ -1,5 +1,5 @@
 project('microdnf', 'c',
-        version : '3.9.1',
+        version : '3.10.0',
         license : 'GPL-2.0+',
         default_options : [
           'b_asneeded=True',
