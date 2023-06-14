@@ -2,7 +2,7 @@
 
 Name:           microdnf
 Version:        3.10.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Lightweight implementation of DNF in C
 
 License:        GPL-2.0-or-later
@@ -14,7 +14,7 @@ BuildRequires:  meson >= 0.36.0
 BuildRequires:  pkgconfig(glib-2.0) >= 2.44.0
 BuildRequires:  pkgconfig(gobject-2.0) >= 2.44.0
 BuildRequires:  pkgconfig(libpeas-1.0) >= 1.20.0
-BuildRequires:  pkgconfig(libdnf) >= %{libdnf_version}
+BuildRequires:  (pkgconfig(libdnf) >= %{libdnf_version} with pkgconfig(libdnf) < 5)
 BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  help2man
 
