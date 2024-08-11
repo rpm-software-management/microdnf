@@ -92,7 +92,7 @@ print_package_info (DnfPackage *package)
   package_info_add_line (table, "Size", size);
   package_info_add_line (table, "Source", dnf_package_get_sourcerpm (package));
   package_info_add_line (table, "Repository", dnf_package_get_reponame (package));
-  package_info_add_line (table, "Summanry", dnf_package_get_summary (package));
+  package_info_add_line (table, "Summary", dnf_package_get_summary (package));
   package_info_add_line (table, "URL", dnf_package_get_url (package));
   package_info_add_line (table, "License", dnf_package_get_license (package));
   package_info_add_line (table, "Description", dnf_package_get_description (package));
