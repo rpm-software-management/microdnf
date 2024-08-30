@@ -68,14 +68,21 @@ dnf_command_reinstall_arg (DnfContext *ctx, const char *arg, GError **error)
   hy_query_filter (query_installed, HY_PKG_REPONAME, HY_EQ, HY_SYSTEM_REPO_NAME);
   g_autoptr(GPtrArray) installed_pkgs = hy_query_run (query_installed);
 
-  if (installed_pkgs->len == 0)
-    {
-      g_print ("No match for argument: %s\n", arg);
-      return TRUE;
-    }
-  
   hy_query_filter (query, HY_PKG_REPONAME, HY_NEQ, HY_SYSTEM_REPO_NAME);
   g_autoptr(GPtrArray) available_pkgs = hy_query_run (query);
+
+  if (installed_pkgs->len == 0)
+    {
+      if (available_pkgs->len == 0)
+        {
+          g_print ("No match for argument: %s\n", arg);
+        }
+      else
+        {
+          g_print ("Package for argument %s available, but not installed.\n", arg);
+        }
+      return TRUE;
+    }
 
   g_autoptr(GTree) available_nevra2pkg_set = g_tree_new_full (compare_nevra, NULL,
                                                               g_free, packageset_free);
