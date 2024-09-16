@@ -1,6 +1,6 @@
 project('microdnf', 'c',
         version : '3.10.0',
-        license : 'GPL-2.0+',
+        license : 'GPL-2.0-or-later AND LGPL-2.1-or-later',
         default_options : [
           'b_asneeded=True',
           'b_lundef=True',

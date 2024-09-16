@@ -4,6 +4,6 @@ Embedded = dnf_command_swap_register_types
 Name = swap
 Description = Removes package and installs another in one transaction
 Authors = Jaroslav Rohel <jrohel@redhat.com>
-License = GPL-2.0+
+License = GPL-2.0-or-later
 Copyright = Copyright (C) 2022 Red Hat, Inc.
 X-Command-Syntax = swap PACKAGE_TO_REMOVE PACKAGE_TO_INSTALL
