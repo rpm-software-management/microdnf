@@ -1,0 +1,5 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration
+
+# To disable default jobs set them as empty
+jobs: []
