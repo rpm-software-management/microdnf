@@ -157,6 +157,15 @@ dnf_command_reinstall_run (DnfCommand      *cmd,
         return FALSE;
     }
 
+  if (!hy_goal_has_actions(dnf_context_get_goal(ctx), DNF_DOWNGRADE | DNF_INSTALL | DNF_UPGRADE))
+  {
+      g_set_error_literal(error,
+                          DNF_ERROR,
+                          DNF_ERROR_NO_PACKAGES_TO_UPDATE,
+                          "No packages marked for reinstall");
+      return FALSE;
+  }
+
   DnfGoalActions flags = DNF_INSTALL;
   if (!dnf_context_get_install_weak_deps ())
     flags |= DNF_IGNORE_WEAK_DEPS;  
