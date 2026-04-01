@@ -1,5 +1,8 @@
 # See the documentation for more information:
 # https://packit.dev/docs/configuration
 
+version_suffix: "^{PACKIT_PROJECT_SNAPSHOTID}"
+update_release: false
+
 # To disable default jobs set them as empty
 jobs: []
